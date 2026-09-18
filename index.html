@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Newsletter</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR",sans-serif;max-width:640px;margin:0 auto;padding:24px 16px;color:#141413}
+  header h1{margin:0 0 4px}
+  header p{margin:0;color:#615d52}
+  .archive{margin-top:32px}
+  .archive h2{font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:#8e897b}
+  .archive ul{list-style:none;padding:0;margin:12px 0 0}
+  .archive li{padding:14px 0;border-top:1px solid rgba(30,26,16,.1)}
+  .archive li a{display:block;text-decoration:none;color:inherit;font-weight:700;font-size:16px}
+  .archive li .meta{margin-top:4px;font-size:13px;color:#8e897b}
+</style>
 </head>
 <body>
 <header>
@@ -11,7 +22,22 @@
   <p>by jhjh7507-sketch</p>
 </header>
 <main>
-  <p>뉴스레터 콘텐츠가 여기에 표시됩니다.</p>
+  <section class="archive">
+    <h2>지난 호</h2>
+    <ul id="archiveList"></ul>
+  </section>
 </main>
+<script>
+  var ARCHIVE = {
+    editions: [
+      { edition: "Vol.01", date: "2026-09-18", title: "이번 주 AI 브리핑", url: "editions/2026-09-18.html" }
+    ]
+  };
+
+  var listEl = document.getElementById("archiveList");
+  listEl.innerHTML = ARCHIVE.editions.map(function(e){
+    return '<li><a href="' + e.url + '">' + e.title + '</a><div class="meta">' + e.edition + ' · ' + e.date + '</div></li>';
+  }).join("");
+</script>
 </body>
 </html>
