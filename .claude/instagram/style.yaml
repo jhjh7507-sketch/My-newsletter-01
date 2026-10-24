@@ -1,0 +1,50 @@
+# Edit rules for /reels-make. Measured by /reels-style; edit values, keep keys.
+source:
+  - "@use.ai.likejimin AI 영상 편집기 릴스 (화면 녹화 4개, 2026-10-24) - 수치는 영상 속 규칙 파일 표기값"
+
+canvas: {w: 1080, h: 1920, fps: 30}
+font: Pretendard
+
+colors:
+  bg: "#efe7e4"          # 연한 분홍 베이지 배경
+  panel: "#ffffff"       # 카드
+  ink: "#1d1d1f"
+  muted: "#8a8a8e"
+  accent: "#d65745"      # 코랄 레드 강조
+  caption_bg: "#2b2b2d"  # 자막 박스
+  caption_ink: "#ffffff"
+  caption_accent: "#ffc93c"
+
+layout:
+  split_y: 860           # 얼굴/캐릭터 모드: 위 그래픽, 아래 영상 경계
+
+caption:
+  y_split: 864           # 경계선 위 자막 (레퍼런스: 이음선 위치 864px)
+  y_full: 1420           # 얼굴 없는 모드 자막 위치
+  size: 62
+  weight: 800
+  min_words: 1
+  max_words: 3           # 레퍼런스: 자막 1~3어절
+  box: true
+
+motion:
+  card_rise_px: 52       # 레퍼런스: 카드 상승 52px
+  ease: expo.out
+  in_dur: 0.5
+  stagger: 0.12
+  face_push_frames: 37   # 레퍼런스: 얼굴 푸시인 37프레임
+  face_push_scale: 1.06
+
+cut:
+  pad: 0.12              # 레퍼런스: 쉼 0.12초
+  max_gap: 0.35
+
+sfx:
+  scene: whoosh
+  item: pop
+  volume: 0.35
+
+voice:
+  provider: elevenlabs
+  voice_id: JBFqnCBsd6RMkjVDRZzb   # 기본값. 사용자가 고른 목소리로 바꿀 것
+  speed: 1.05
