@@ -25,6 +25,25 @@
       "env": {
         "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY:-}"
       }
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@1.12.0",
+        "--headless",
+        "--isolated",
+        "--executablePath",
+        "/opt/pw-browsers/chromium",
+        "--chromeArg=--no-sandbox"
+      ]
+    },
+    "glif": {
+      "command": "npx",
+      "args": ["-y", "@glifxyz/glif-mcp-server@0.9.9"],
+      "env": {
+        "GLIF_API_TOKEN": "${GLIF_API_TOKEN:-}"
+      }
     }
   }
 }
