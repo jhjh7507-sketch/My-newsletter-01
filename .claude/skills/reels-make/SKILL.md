@@ -19,6 +19,14 @@ Topic in, MP4 out. Three modes share one pipeline:
 | `face` | user's raw video + script | the user's own audio | cards on top, footage below |
 | `character` | topic line + AI character | ElevenLabs TTS | cards on top, character below |
 
+**Reference video + one line** ("이 영상처럼, 주제: ..."): run `/reels-style` on
+the attached video first, write its rules to `work/style.yaml` (a copy of
+`.claude/instagram/style.yaml` with the measured values; keep the shared file
+unless the user says to adopt the new look), match the reference's hook
+formula and scene rhythm in the script, then build with `--style work/style.yaml`.
+Tell the user which parts of the reference could not be matched (its own
+footage, 3D, photos, unusual effects) and what was used instead.
+
 Before anything, read `.claude/instagram/strategy.md`, `.claude/instagram/style.yaml`
 and, if they exist, `voice.md` and `swipe.md` in the same folder. Work in
 `work/` at the repo root (it is scratch; never commit it).
