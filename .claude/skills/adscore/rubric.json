@@ -1,0 +1,38 @@
+{
+  "hook": {
+    "points": 20,
+    "anchors": {
+      "20": "Names a specific situation, number or claim in the first 1-3 s; creates tension or curiosity; payload in the first words; speaks to the viewer.",
+      "14": "Specific and clear but no tension, or tension but vague.",
+      "8": "Generic opener (\"오늘은 ~에 대해 알려드릴게요\"), brand name first, or the point arrives after 3 s.",
+      "2": "No hook: logo, greeting, or silence first."
+    }
+  },
+  "copy": {
+    "points": 15,
+    "anchors": {
+      "15": "One idea, concrete nouns and numbers, short sentences, no filler, reads like a person.",
+      "10": "Clear but padded or two competing ideas.",
+      "5": "Vague benefits, buzzwords, AI tells (em dashes, stock phrases).",
+      "1": "Hard to say what it is about."
+    }
+  },
+  "cta": {
+    "points": 10,
+    "anchors": {
+      "10": "One ask, low effort, says what happens next (\"저장해두고 장 볼 때 보세요\", \"프로필 링크에서 사이즈표 확인\").",
+      "6": "One ask but generic (\"자세히 보기\").",
+      "3": "Several asks competing.",
+      "0": "No ask."
+    }
+  },
+  "offer": {
+    "points": 15,
+    "anchors": {
+      "15": "Clear value, a real reason to act now (end date, limited stock, first-order deal) or, for organic reels, an obvious save/share payoff.",
+      "10": "Value clear, no urgency.",
+      "5": "Value implied, not stated.",
+      "0": "No reason to care."
+    }
+  }
+}
