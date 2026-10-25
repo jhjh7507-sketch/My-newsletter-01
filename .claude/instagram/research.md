@@ -41,6 +41,35 @@
   체형교정 전자책 판매 계정도 있다.
 - 따라 볼 계정: @pt_omk, @ws.moment, @elly_fit_, @pilatesjane_, @physio_pilosophy
 
+### 한국 vs 해외 (2026-10-25 추가 조사)
+
+- 한국어는 100만 뷰가 드물다. 같이 터지는 키워드까지 넓혀도 100만이 넘는 건
+  @ws.moment의 "뱃살이 고민이라면? (골반 전방경사)" 2편(163만, 111만),
+  @smtown.run.club 러닝 전 스트레칭(145만) 정도다. @ws.moment는 같은 후킹을
+  두 번 올려서 두 번 다 100만을 넘겼다. 운영 루프 5단계(터진 후킹 재활용)의 근거다.
+- 영어는 시장이 수십 배다. 색인 기준 "posture" 4,098개 vs "거북목" 96개.
+  1천만 뷰가 넘는 영상도 여러 개다.
+
+| 조회수 | 팔로워 | 배수 | 계정 | 첫 문장 |
+|---:|---:|---:|---|---|
+| 4,723만 | 373만 | 12.6 | @yogasong_hayeon | Lower back pain? Try these daily! |
+| 2,677만 | 194만 | 13.8 | @kivenro.flexibility | Spending hours on your phone or laptop can lead to rounded shoulders |
+| 1,350만 | 8.9만 | 151.5 | @rehab.wizard | Do this after waking up and before bed to get rid of aching lower back pain |
+| 1,154만 | 18.9만 | 61.1 | @diet_planning_official | Your Sleep Position is Destroying Your Spine! |
+| 384만 | 157만 | 2.4 | @conor_harris_ | The evidence-based fix for forward head posture |
+| 248만 | 40만 | 6.2 | @remytortosa | Stiff lower back? Pain? Try this |
+| 172만 | 40만 | 4.3 | @remytortosa | Rounded shoulders are usually not just a shoulder problem |
+| 141만 | 80만 | 1.8 | @hbpilates | Comment POSTURE if you're tired of your neck hump or rounded shoulders |
+| 33만 | 8.9만 | 3.7 | @rehab.wizard | Belly Isn't Always Fat. Posture? Lordosis? |
+
+- 해외도 "뱃살은 지방이 아니라 자세 때문"(lower belly pooch, anterior pelvic tilt)
+  주제가 반복된다. 한국 1위 주제와 같다.
+- 해외 교정 계정 다수가 "Comment SPINE / POSTURE / RESET" → 무료 루틴을 DM으로
+  보내는 구조로 잠재 고객을 모은 뒤 코칭·클래스를 판다.
+- 영어 검색어: posture, forward head posture, tech neck, rounded shoulders,
+  neck hump, anterior pelvic tilt, lower belly pooch, lower back pain, hunchback
+- 해외 레퍼런스 기준: 300만 뷰 이상, 또는 100만 뷰 이상이면서 팔로워의 5배 이상.
+
 ## B. 돈
 
 ### 검색할 해시태그·키워드
