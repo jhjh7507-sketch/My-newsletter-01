@@ -97,6 +97,8 @@ def scene_html(i, sc, emph):
     terms = emph + ([sc["highlight"]] if sc.get("highlight") else [])
     if kind == "none":
         return ""
+    if kind == "hook":
+        return f'<div class="card hook"><div class="hooktxt rise">{mark(sc["text"], terms)}</div></div>'
     if kind == "title":
         sub = f'<p class="sub rise">{mark(sc["sub"], terms)}</p>' if sc.get("sub") else ""
         body = f'<h1 class="big rise">{mark(sc["title"], terms)}</h1>{sub}'
@@ -158,7 +160,10 @@ def main():
     for sc in scenes:
         starts.append(float(sc["start"]) if "start" in sc else find_anchor(words, sc["at"]))
     emph = plan.get("emphasis", [])
-    split = mode in ("face", "character")
+    # "full" puts footage on the whole canvas with captions and an optional hook
+    # line on top: for skits and reactions, where a card would hide the joke.
+    full = plan.get("layout") == "full" and mode in ("face", "character")
+    split = mode in ("face", "character") and not full
     cap_y = CAP["y_split"] if split else CAP["y_full"]
     caps = chunk_captions(words, CAP["min_words"], CAP["max_words"])
 
@@ -172,11 +177,16 @@ def main():
             continue
         clips.append(f'<div class="clip scene" id="sc{i}" data-start="{s:.3f}" '
                      f'data-duration="{e - s:.3f}" data-track-index="1">{inner}</div>')
-        js.append(f'tl.fromTo("#sc{i} .card",{{opacity:0,y:{M["card_rise_px"]}}},'
-                  f'{{opacity:1,y:0,duration:{M["in_dur"]},ease:"{M["ease"]}"}},{s:.3f});')
-        js.append(f'tl.fromTo("#sc{i} .rise",{{opacity:0,y:{M["card_rise_px"]}}},'
-                  f'{{opacity:1,y:0,duration:{M["in_dur"]},ease:"{M["ease"]}",'
-                  f'stagger:{M["stagger"]}}},{s + 0.08:.3f});')
+        if sc.get("type") == "hook":
+            # readable from the first frame: a small settle, never a fade from nothing
+            js.append(f'tl.fromTo("#sc{i} .hooktxt",{{scale:1.08}},'
+                      f'{{scale:1,duration:0.3,ease:"power2.out"}},{s:.3f});')
+        else:
+            js.append(f'tl.fromTo("#sc{i} .card",{{opacity:0,y:{M["card_rise_px"]}}},'
+                      f'{{opacity:1,y:0,duration:{M["in_dur"]},ease:"{M["ease"]}"}},{s:.3f});')
+            js.append(f'tl.fromTo("#sc{i} .rise",{{opacity:0,y:{M["card_rise_px"]}}},'
+                      f'{{opacity:1,y:0,duration:{M["in_dur"]},ease:"{M["ease"]}",'
+                      f'stagger:{M["stagger"]}}},{s + 0.08:.3f});')
         if sc.get("type") == "stat":
             js.append(f'(()=>{{const el=document.querySelector("#sc{i} .num");'
                       f'const to=parseFloat(el.dataset.to);const dec=(el.dataset.to.split(".")[1]||"").length;'
@@ -191,14 +201,14 @@ def main():
             clips.append(f'<audio src="media/{st["sfx"]["item"]}.wav" data-start="{t:.3f}" '
                          f'data-duration="0.09" data-volume="{vol}" data-track-index="6"></audio>')
 
-    if split and media.get("video"):
+    if (split or full) and media.get("video"):
         has_audio = 'data-has-audio="true"' if not media.get("voice") else "muted"
         clips.append(f'<div class="footage"><video id="ft" class="clip" src="{media["video"]}" '
                      f'data-start="0" data-duration="{D}" {has_audio} data-track-index="0"></video></div>')
-    elif split and media.get("image"):
+    elif (split or full) and media.get("image"):
         clips.append(f'<div class="footage"><img id="ft" class="clip" src="{media["image"]}" '
                      f'data-start="0" data-duration="{D}" data-track-index="0" /></div>')
-    if split and (media.get("video") or media.get("image")):
+    if (split or full) and (media.get("video") or media.get("image")):
         push = M["face_push_frames"] / FPS
         for s in [0.0] + starts[1:]:
             js.append(f'tl.fromTo("#ft",{{scale:1}},{{scale:{M["face_push_scale"]},'
@@ -218,6 +228,7 @@ def main():
                   f'duration:0.12,ease:"back.out(2)"}},{c["start"]:.3f});')
 
     top = L["split_y"] if split else H
+    ftop = 0 if full else top
     fy = plan.get("focus_y")
     ft_pos = f"50% {float(fy) * 100:.0f}%" if fy is not None else "50% 50%"
     ft_origin = f"50% {float(fy) * 100:.0f}%" if fy is not None else "50% 40%"
@@ -240,7 +251,10 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{C['bg']}}}
 .stat{{margin-top:12px;font-weight:900;letter-spacing:-.04em}}
 .num{{font-size:220px;color:{C['accent']}}}.unit{{font-size:90px;margin-left:10px}}
 .quote{{font-size:70px;font-weight:900;line-height:1.3}}
-.footage{{position:absolute;left:0;top:{top}px;width:{W}px;height:{H - top}px;overflow:hidden;z-index:1}}
+.footage{{position:absolute;left:0;top:{ftop}px;width:{W}px;height:{H - ftop}px;overflow:hidden;z-index:1}}
+.card.hook{{position:absolute;top:260px;left:64px;right:64px;width:auto;background:none;box-shadow:none;padding:0;text-align:center}}
+.hooktxt{{white-space:pre-line;font-size:84px;line-height:1.22;font-weight:900;letter-spacing:-.03em;color:#fff;-webkit-text-stroke:3px rgba(0,0,0,.55);paint-order:stroke fill;text-shadow:0 6px 24px rgba(0,0,0,.55)}}
+.hooktxt b{{color:{C['caption_accent']}}}
 .footage #ft{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:{ft_pos};transform-origin:{ft_origin}}}
 .cap{{z-index:5;top:{cap_y}px;bottom:auto;height:auto;display:flex;justify-content:center;transform:translateY(-50%)}}
 .cap span{{display:inline-block;font-size:{CAP['size']}px;font-weight:{CAP['weight']};color:{C['caption_ink']};{"background:" + C['caption_bg'] + ";padding:10px 24px;border-radius:12px;" if CAP['box'] else "text-shadow:0 4px 14px rgba(0,0,0,.6);"}letter-spacing:-.02em}}

@@ -126,6 +126,11 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
 - Scene types: `title` (title, sub), `list` (title, items), `steps` (title,
   items, active), `stat` (label, value, unit; counts up), `quote` (text),
   `none` (no card, footage only). `kicker` is the small pill label on any card.
+- `"layout": "full"` (face, character): footage fills the whole frame, captions
+  sit low, and cards are not used. Use it for skits, reactions and anything
+  where the face is the joke. Its scene type is `hook` (text; `\n` breaks the
+  line): a white outlined line near the top, readable from the first frame.
+  End it with a `none` scene. Info reels keep the default split layout.
 - `emphasis` terms turn the accent colour in cards and captions. Two or three
   per reel, not more.
 
