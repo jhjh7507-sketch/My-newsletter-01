@@ -94,7 +94,9 @@ is, and what was dropped.
 
 Footage sits below `layout.split_y` and is cropped to fill it, so roughly the
 top and bottom fifth of a vertical frame is lost. Check the watch sheets for a
-head or feet cut off and say so before rendering.
+head or feet cut off and say so before rendering. `"focus_y"` in plan.json
+moves the crop window: 0 shows the top of the frame, 1 the bottom, default 0.5.
+Handheld selfie footage keeps the eyes high in the frame; 0.3 worked for it.
 
 ## 3. Plan the picture
 

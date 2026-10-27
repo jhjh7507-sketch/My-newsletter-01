@@ -218,6 +218,9 @@ def main():
                   f'duration:0.12,ease:"back.out(2)"}},{c["start"]:.3f});')
 
     top = L["split_y"] if split else H
+    fy = plan.get("focus_y")
+    ft_pos = f"50% {float(fy) * 100:.0f}%" if fy is not None else "50% 50%"
+    ft_origin = f"50% {float(fy) * 100:.0f}%" if fy is not None else "50% 40%"
     css = f"""*{{margin:0;padding:0;box-sizing:border-box}}
 html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{C['bg']}}}
 #root{{position:relative;word-break:keep-all;width:{W}px;height:{H}px;font-family:{st['font']},'Pretendard',sans-serif;color:{C['ink']}}}
@@ -238,7 +241,7 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{C['bg']}}}
 .num{{font-size:220px;color:{C['accent']}}}.unit{{font-size:90px;margin-left:10px}}
 .quote{{font-size:70px;font-weight:900;line-height:1.3}}
 .footage{{position:absolute;left:0;top:{top}px;width:{W}px;height:{H - top}px;overflow:hidden;z-index:1}}
-.footage #ft{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 40%}}
+.footage #ft{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:{ft_pos};transform-origin:{ft_origin}}}
 .cap{{z-index:5;top:{cap_y}px;bottom:auto;height:auto;display:flex;justify-content:center;transform:translateY(-50%)}}
 .cap span{{display:inline-block;font-size:{CAP['size']}px;font-weight:{CAP['weight']};color:{C['caption_ink']};{"background:" + C['caption_bg'] + ";padding:10px 24px;border-radius:12px;" if CAP['box'] else "text-shadow:0 4px 14px rgba(0,0,0,.6);"}letter-spacing:-.02em}}
 .cap b{{color:{C['caption_accent']}}}"""

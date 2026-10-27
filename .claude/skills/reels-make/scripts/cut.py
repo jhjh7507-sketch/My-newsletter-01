@@ -13,8 +13,16 @@ Writes work/cut.mp4 and work/words_cut.json with times remapped.
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
+
+
+def probe_duration(path):
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of",
+                        "csv=p=0", path], capture_output=True, text=True, check=True)
+    return float(r.stdout.strip())
 
 
 def parse_drop(s):
@@ -69,32 +77,40 @@ def main():
         else:
             segs.append((s, e))
 
+    # One ffmpeg run per segment, then a stream-copy concat. A single trim/concat
+    # filter graph buffers every decoded frame and is killed for lack of memory on
+    # phone footage longer than half a minute.
+    os.makedirs(a.out, exist_ok=True)
+    tmp = tempfile.mkdtemp(prefix="cut_", dir=a.out)
+    parts, durs = [], []
+    for k, (s, e) in enumerate(segs):
+        p = os.path.join(tmp, f"{k:04d}.mkv")
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s:.3f}", "-i", a.video,
+                        "-t", f"{e - s:.3f}", "-map", "0:v:0", "-map", "0:a:0",
+                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
+                        "-c:a", "pcm_s16le", p], check=True)
+        parts.append(p)
+        durs.append(probe_duration(p))
+    lst = os.path.join(tmp, "list.txt")
+    with open(lst, "w") as f:
+        f.writelines(f"file '{os.path.basename(p)}'\n" for p in parts)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst,
+                    "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
+                    os.path.join(a.out, "cut.mp4")], check=True)
+    shutil.rmtree(tmp)
+
     starts, t = [], 0.0
-    for s, e in segs:
+    for d in durs:
         starts.append(t)
-        t += e - s
+        t += d
     remapped = []
     for w in kept:
-        for (s, e), off in zip(segs, starts):
+        for (s, e), off, d in zip(segs, starts, durs):
             if s <= w["start"] < e:
                 remapped.append({"text": w["text"], "start": round(off + w["start"] - s, 3),
-                                 "end": round(off + min(w["end"], e) - s, 3)})
+                                 "end": round(off + min(w["end"] - s, d), 3)})
                 break
 
-    parts, labels = [], []
-    for k, (s, e) in enumerate(segs):
-        parts.append(f"[0:v]trim={s:.3f}:{e:.3f},setpts=PTS-STARTPTS[v{k}];"
-                     f"[0:a]atrim={s:.3f}:{e:.3f},asetpts=PTS-STARTPTS[a{k}]")
-        labels.append(f"[v{k}][a{k}]")
-    graph = ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(segs)}:v=1:a=1[v][a]"
-    os.makedirs(a.out, exist_ok=True)
-    gf = os.path.join(a.out, "cut.filter")
-    open(gf, "w").write(graph)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", a.video, "-filter_complex_script", gf,
-                    "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "veryfast",
-                    "-crf", "18", "-c:a", "aac", "-b:a", "192k", os.path.join(a.out, "cut.mp4")],
-                   check=True)
-    os.remove(gf)
     with open(os.path.join(a.out, "words_cut.json"), "w", encoding="utf-8") as f:
         json.dump(remapped, f, ensure_ascii=False, indent=1)
     src = words[-1]["end"]
