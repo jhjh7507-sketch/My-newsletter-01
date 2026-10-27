@@ -19,8 +19,8 @@ stamped with its time, and the words spoken between that frame and the next.
 | What the user sends | How to get it |
 |---|---|
 | A file attached in chat | It is already under `/root/.claude/uploads/...` |
-| A Google Drive file or folder | Download it with the Google Drive connector |
-| An Instagram reel link | Instagram is blocked from the cloud session. Look the reel up in Firecrawl's Oriane index (`instagram/post-lookup`, `projection: "full"`, 40 credits) for its transcript and frames. If it is not indexed, ask for a screen recording |
+| A Google Drive file or folder | Under 10 MB: the Google Drive connector. Larger: have it shared as "anyone with the link" and `curl -sSL -o v.mov "https://drive.usercontent.google.com/download?id=FILE_ID&export=download&confirm=t"` (needs `drive.google.com` and `drive.usercontent.google.com` allowed in the network settings) |
+| An Instagram reel link | Instagram is blocked from the cloud session. Firecrawl's Oriane index gives caption and counts but, when tested on 2026-10-25, no transcript or frames even with `projection: "full"`. Ask for a screen recording or the file through Drive |
 
 ## Run it
 

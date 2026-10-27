@@ -54,22 +54,47 @@ style.yaml `voice`. Output: `work/voice.mp3`, `work/words.json`.
 
 face:
 
+Raw footage arrives through Google Drive, because chat attachments and the
+Drive connector (10 MB) are too small for video. The user uploads the original
+to Drive and shares the file or its folder as "anyone with the link". Take the
+file id from the link (`/file/d/FILE_ID/`), or list a folder with the Google
+Drive connector (`search_files`, `parentId = 'FOLDER_ID'`) and order clips by
+`createdTime`. Then:
+
+```bash
+curl -sSL -o work/raw.mov "https://drive.usercontent.google.com/download?id=FILE_ID&export=download&confirm=t"
+ffprobe -v error -show_entries format=duration work/raw.mov   # an HTML page here means the file is not shared publicly
+```
+
+This needs `drive.google.com` and `drive.usercontent.google.com` allowed in the
+environment's network settings. When the edit is done, remind the user to set
+the sharing back to restricted. Several clips for one reel: join them in
+recording order (ffmpeg concat filter, re-encoded) into one RAW before the next step.
+
 ```bash
 python3 .claude/skills/reels-make/scripts/stt.py RAW.mov --out work      # needs Speech to Text permission
+python3 .claude/skills/watch/watch.py RAW.mov --out work/watch --no-stt  # timed frames, to see demos and angles
 ```
 
 Then pick takes. Read `work/words.json` against the user's script: where a
 sentence was said more than once, keep the cleanest complete take (usually the
 last), and list every other word index range to drop, plus filler-only runs
-("음", "어", false starts). Then:
+("음", "어", false starts). cut.py keeps only speech, so a silent exercise demo
+or held stretch disappears unless you keep it: find it on the watch sheets and
+pass its source seconds with `--keep`, usually 2-4 seconds of the best part.
+Then:
 
 ```bash
-python3 .claude/skills/reels-make/scripts/cut.py RAW.mov work/words.json --out work --drop 0-14,37-41 --pad 0.12
+python3 .claude/skills/reels-make/scripts/cut.py RAW.mov work/words.json --out work --drop 0-14,37-41 --keep 31.5-34 --pad 0.12
 ```
 
 `--pad` and `--max-gap` come from style.yaml `cut`. Output: `work/cut.mp4`,
 `work/words_cut.json`. Tell the user how long the raw was, how long the cut
 is, and what was dropped.
+
+Footage sits below `layout.split_y` and is cropped to fill it, so roughly the
+top and bottom fifth of a vertical frame is lost. Check the watch sheets for a
+head or feet cut off and say so before rendering.
 
 ## 3. Plan the picture
 

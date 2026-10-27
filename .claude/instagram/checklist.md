@@ -21,7 +21,7 @@
 
 - [ ] 🙋 내가 쓴 글 3개 보내기 → 🤖 말투 프로필(`voice.md`) 만들기
 - [ ] 🙋 ElevenLabs 목소리 고르기 또는 내 목소리 복제
-- [ ] 🙋 (얼굴 포맷) ElevenLabs 키에 Speech to Text 권한 켜기
+- [x] 🙋 (얼굴 포맷) ElevenLabs 키에 Speech to Text 권한 켜기 (2026-10-27 새 키)
 - [ ] 🤖 (캐릭터 포맷) Higgsfield로 캐릭터 만들기 (크레딧 견적 먼저)
 - [x] 🤖 대본 30개 쓰기 (`scripts.md` 1차)
 - [ ] 🤖 시험 영상 1편 → 🙋 피드백 → 스타일 확정

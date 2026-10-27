@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Cut dead air and dropped takes out of a recorded video.
 
-  python3 cut.py raw.mov work/words.json --out work/ [--drop 12-30,55-61] [--pad 0.12]
+  python3 cut.py raw.mov work/words.json --out work/ [--drop 12-30,55-61] [--keep 31.5-34] [--pad 0.12]
 
 Keeps only spoken words, closes every gap longer than --max-gap, and leaves
 --pad seconds of breath around each kept run. --drop removes word index
-ranges (inclusive), which is how bad takes and retakes are removed.
+ranges (inclusive), which is how bad takes and retakes are removed. --keep
+adds source time ranges in seconds that stay even without speech: a silent
+exercise demo, a held stretch, a reaction. Find them with /watch frames.
 Writes work/cut.mp4 and work/words_cut.json with times remapped.
 """
 import argparse
@@ -23,12 +25,23 @@ def parse_drop(s):
     return out
 
 
+def parse_keep(s):
+    out = []
+    for part in filter(None, (s or "").split(",")):
+        lo, _, hi = part.partition("-")
+        if float(hi) <= float(lo):
+            sys.exit(f"--keep range {part} ends before it starts")
+        out.append((float(lo), float(hi)))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video")
     ap.add_argument("words")
     ap.add_argument("--out", default="work")
     ap.add_argument("--drop", default="")
+    ap.add_argument("--keep", default="")
     ap.add_argument("--pad", type=float, default=0.12)
     ap.add_argument("--max-gap", type=float, default=0.35)
     a = ap.parse_args()
@@ -47,16 +60,26 @@ def main():
         else:
             runs.append({"start": w["start"], "end": w["end"], "last": w["i"], "words": [w]})
 
-    segs, t, remapped = [], 0.0, []
-    for r in runs:
-        s, e = max(0.0, r["start"] - a.pad), r["end"] + a.pad
-        if segs and s < segs[-1][1]:
-            s = segs[-1][1]
-        for w in r["words"]:
-            remapped.append({"text": w["text"], "start": round(t + w["start"] - s, 3),
-                             "end": round(t + w["end"] - s, 3)})
-        segs.append((s, e))
+    spans = sorted([(max(0.0, r["start"] - a.pad), r["end"] + a.pad) for r in runs]
+                   + parse_keep(a.keep))
+    segs = []
+    for s, e in spans:
+        if segs and s <= segs[-1][1]:
+            segs[-1] = (segs[-1][0], max(segs[-1][1], e))
+        else:
+            segs.append((s, e))
+
+    starts, t = [], 0.0
+    for s, e in segs:
+        starts.append(t)
         t += e - s
+    remapped = []
+    for w in kept:
+        for (s, e), off in zip(segs, starts):
+            if s <= w["start"] < e:
+                remapped.append({"text": w["text"], "start": round(off + w["start"] - s, 3),
+                                 "end": round(off + min(w["end"], e) - s, 3)})
+                break
 
     parts, labels = [], []
     for k, (s, e) in enumerate(segs):
