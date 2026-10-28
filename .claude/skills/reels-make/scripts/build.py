@@ -269,6 +269,8 @@ def main():
             inner, pjs, pops = pro.BUILDERS[sc["type"]](i, sc, s, C)
             glow = pro.tone(C, sc.get("glow", "red"))
             bg = f'background:radial-gradient(110% 70% at 50% 38%,{glow}2e 0%,transparent 60%),{C["bg"]}'
+            if sc["type"] == "clip":  # app recordings sit on pure black; letterboxing must not show
+                bg = "background:#000"
             z = f"z-index:{10 + i};" if mixed else ""
             clips.append(f'<div class="clip scene lay-{lay or "split"}" id="sc{i}" style="{z}{bg}" data-start="{s:.3f}" '
                          f'data-duration="{dur:.3f}" {attrs}>{inner}</div>')

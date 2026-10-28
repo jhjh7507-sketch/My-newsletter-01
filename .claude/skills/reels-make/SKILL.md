@@ -188,8 +188,10 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   (`still`), draw the bony line with `lines` and turn it with `rot` about the
   joint it turns on (ASIS-PSIS line about the hip joint; anterior tilt is
   negative when the body faces left), and show the pull with `arrows` along
-  the muscle. Find the landmarks on a gridded crop and check them on a marked
-  still before rendering. AI video got the direction wrong both times it was
+  the muscle. Point at joints by ringing them on the bare-skeleton view
+  (front skeleton held still; `"fit": "contain"` shows a tall crop whole on
+  black instead of cropping into the app's menu). Find the landmarks on a
+  gridded crop and check them on a marked still before rendering. AI video got the direction wrong both times it was
   tried (2026-10-28) and the user rejected it.
 - Moving anatomy with Higgsfield, only where direction does not matter: cut a still
   from the recording where the view holds (side view for posture, the

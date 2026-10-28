@@ -126,7 +126,8 @@ def clip(i, sc, s, C):
     """
     (sw, sh), (bw, bh) = sc["_size"], sc["_box"]
     cx, cy, cw, ch = sc.get("crop") or (0, 0, sw, sh)
-    k = max(bw / cw, bh / ch)
+    # cover fills the scene (cropping more); contain shows the whole crop on black
+    k = (min if sc.get("fit") == "contain" else max)(bw / cw, bh / ch)
     left, top = -cx * k + (bw - cw * k) / 2, -cy * k + (bh - ch * k) / 2
     vid = (f'<video class="clip" id="sc{i}vid" src="{sc["_media"]}" muted data-start="{s:.3f}" '
            f'data-duration="{sc["_dur"]:.3f}" data-media-start="{float(sc.get("from", 0)):.3f}" '
