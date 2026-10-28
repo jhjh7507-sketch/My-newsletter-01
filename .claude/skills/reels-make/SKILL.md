@@ -92,6 +92,24 @@ python3 .claude/skills/reels-make/scripts/cut.py RAW.mov work/words.json --out w
 `work/words_cut.json`. Tell the user how long the raw was, how long the cut
 is, and what was dropped.
 
+Then fix the transcript's mistakes in `words_cut.json` before captions are
+built: names, places and numbers the recogniser got wrong ("선정점" →
+"선정릉점", "사십삼초" → "43초"), and words it split ("힉스 필드" → one word).
+Edit the text only and keep the times.
+
+Optional AI voice (the user asked for it; it costs about 1,000 ElevenLabs
+credits a minute, so a free month covers under ten minutes):
+
+```bash
+python3 .claude/skills/reels-make/scripts/sts.py work/cut.mp4 --voice VOICE_ID --out work/voice_ai.mp3
+```
+
+Speech to Speech keeps the user's words and timing, so lips and captions stay
+in sync. Use their own cloned voice when it exists. To offer both voices from
+one render, put a silent track of the cut's length in the plan as `voice`
+(footage is then muted), render once, and mix each voice under the effects
+with ffmpeg (`loudnorm=I=-16:TP=-1.5`, then `amix=normalize=0`).
+
 Footage sits below `layout.split_y` and is cropped to fill it, so roughly the
 top and bottom fifth of a vertical frame is lost. Check the watch sheets for a
 head or feet cut off and say so before rendering. `"focus_y"` in plan.json

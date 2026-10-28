@@ -12,6 +12,7 @@ Writes work/cut.mp4 and work/words_cut.json with times remapped.
 """
 import argparse
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -19,10 +20,15 @@ import sys
 import tempfile
 
 
-def probe_duration(path):
-    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of",
-                        "csv=p=0", path], capture_output=True, text=True, check=True)
-    return float(r.stdout.strip())
+def probe_fps(path):
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                        "stream=avg_frame_rate,r_frame_rate", "-of", "csv=p=0", path],
+                       capture_output=True, text=True, check=True)
+    for rate in r.stdout.strip().split(","):
+        num, _, den = rate.partition("/")
+        if float(num or 0) > 0 and float(den or 1) > 0:
+            return float(num) / float(den or 1)
+    sys.exit(f"cannot read the frame rate of {path}")
 
 
 def parse_drop(s):
@@ -77,6 +83,19 @@ def main():
         else:
             segs.append((s, e))
 
+    # Snap every segment to the video frame grid so each one carries exactly as much
+    # sound as picture. Otherwise every join leaves a few ms of picture without
+    # sound, and over dozens of segments the voice runs ahead of the lips.
+    fps = probe_fps(a.video)
+    snapped = []
+    for s, e in segs:
+        s, e = math.floor(s * fps + 1e-6) / fps, math.ceil(e * fps - 1e-6) / fps
+        if snapped and s <= snapped[-1][1]:
+            snapped[-1] = (snapped[-1][0], max(snapped[-1][1], e))
+        else:
+            snapped.append((s, e))
+    segs = snapped
+
     # One ffmpeg run per segment, then a stream-copy concat. A single trim/concat
     # filter graph buffers every decoded frame and is killed for lack of memory on
     # phone footage longer than half a minute.
@@ -84,13 +103,17 @@ def main():
     tmp = tempfile.mkdtemp(prefix="cut_", dir=a.out)
     parts, durs = [], []
     for k, (s, e) in enumerate(segs):
+        n = round((e - s) * fps)
+        d = n / fps
         p = os.path.join(tmp, f"{k:04d}.mkv")
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s:.3f}", "-i", a.video,
-                        "-t", f"{e - s:.3f}", "-map", "0:v:0", "-map", "0:a:0",
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s:.6f}", "-i", a.video,
+                        "-map", "0:v:0", "-map", "0:a:0", "-t", f"{d:.6f}",
+                        "-vf", f"fps={fps}", "-frames:v", str(n),
+                        "-af", f"apad=whole_dur={d:.6f},atrim=0:{d:.6f}",
                         "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
                         "-c:a", "pcm_s16le", p], check=True)
         parts.append(p)
-        durs.append(probe_duration(p))
+        durs.append(d)
     lst = os.path.join(tmp, "list.txt")
     with open(lst, "w") as f:
         f.writelines(f"file '{os.path.basename(p)}'\n" for p in parts)

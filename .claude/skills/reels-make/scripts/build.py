@@ -182,9 +182,10 @@ def main():
             js.append(f'tl.fromTo("#sc{i} .hooktxt",{{scale:1.08}},'
                       f'{{scale:1,duration:0.3,ease:"power2.out"}},{s:.3f});')
         else:
-            js.append(f'tl.fromTo("#sc{i} .card",{{opacity:0,y:{M["card_rise_px"]}}},'
+            op0 = 1 if s < 0.05 else 0  # the opening card is on screen from frame one
+            js.append(f'tl.fromTo("#sc{i} .card",{{opacity:{op0},y:{M["card_rise_px"]}}},'
                       f'{{opacity:1,y:0,duration:{M["in_dur"]},ease:"{M["ease"]}"}},{s:.3f});')
-            js.append(f'tl.fromTo("#sc{i} .rise",{{opacity:0,y:{M["card_rise_px"]}}},'
+            js.append(f'tl.fromTo("#sc{i} .rise",{{opacity:{op0},y:{M["card_rise_px"]}}},'
                       f'{{opacity:1,y:0,duration:{M["in_dur"]},ease:"{M["ease"]}",'
                       f'stagger:{M["stagger"]}}},{s + 0.08:.3f});')
         if sc.get("type") == "stat":
