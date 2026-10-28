@@ -190,8 +190,13 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   negative when the body faces left), and show the pull with `arrows` along
   the muscle. Point at joints by ringing them on the bare-skeleton view
   (front skeleton held still; `"fit": "contain"` shows a tall crop whole on
-  black instead of cropping into the app's menu). Find the landmarks on a
-  gridded crop and check them on a marked still before rendering. AI video got the direction wrong both times it was
+  black instead of cropping into the app's menu). Compare two muscles side by
+  side (one weak in blue, one tight in red) as one 1080x1920 still: pull each
+  frame with ffmpeg (`-ss T -i rec.mp4 -frames:v 1 -vf crop,scale`), paste
+  the two 535x1280 panels at y 200 with PIL (ffmpeg overlay of two seeks came
+  out black), and use it as a `full` clip with `still`, rings and labels at
+  y .145 above the panels (captions sit low at y 1560). Find the landmarks on
+  a gridded crop and check them on a marked still before rendering. AI video got the direction wrong both times it was
   tried (2026-10-28) and the user rejected it.
 - Moving anatomy with Higgsfield, only where direction does not matter: cut a still
   from the recording where the view holds (side view for posture, the
