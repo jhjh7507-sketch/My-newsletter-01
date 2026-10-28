@@ -177,7 +177,7 @@ def clip(i, sc, s, C):
         d = f"M {pts[0][0]:.0f} {pts[0][1]:.0f} " + (f"Q {pts[1][0]:.0f} {pts[1][1]:.0f} {pts[2][0]:.0f} {pts[2][1]:.0f}"
                                                      if len(pts) == 3 else f"L {pts[1][0]:.0f} {pts[1][1]:.0f}")
         marks.append(f'<path id="sc{i}ar{n}" d="{d}" fill="none" stroke="{col}" stroke-width="{ar.get("w", 10)}" '
-                     f'stroke-linecap="round" marker-end="url(#sc{i}ah{n})" style="filter:drop-shadow(0 0 10px {col})"/>'
+                     f'stroke-linecap="round" marker-end="url(#sc{i}ah{n})" opacity="0" style="filter:drop-shadow(0 0 10px {col})"/>'
                      f'<marker id="sc{i}ah{n}" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">'
                      f'<path d="M0,0 L5,2.5 L0,5 Z" fill="{col}"/></marker>')
         t = float(ar.get("t", s + .5))
@@ -316,7 +316,7 @@ def css(C):
 .ac-chip{{position:absolute;z-index:2;opacity:0;white-space:nowrap;font-size:36px;font-weight:800;color:#fff;border-radius:999px;padding:12px 28px;box-shadow:0 8px 30px rgba(0,0,0,.45)}}
 .ac-svg{{position:absolute;inset:0;width:100%;height:100%;z-index:1;overflow:visible}}
 .ac-ring{{position:absolute;z-index:2;opacity:0;border:7px solid;border-radius:50%}}
-.ac-head{{z-index:2;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8)}}
+.ac-head{{z-index:2;top:0;padding:52px 0 70px;color:#fff;font-size:44px;text-shadow:0 2px 12px rgba(0,0,0,.9);background:linear-gradient(180deg,{C['bg']}e6 0%,{C['bg']}99 55%,{C['bg']}00 100%)}}
 .pvw{{position:absolute;inset:0}}
 .pv{{position:absolute;inset:0;width:100%;height:100%}}
 .pv-head{{position:absolute;top:56px;left:0;right:0;text-align:center;font-size:40px;font-weight:800;color:{C['muted']};letter-spacing:.06em;z-index:1}}
