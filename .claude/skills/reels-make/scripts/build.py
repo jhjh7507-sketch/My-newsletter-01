@@ -176,7 +176,7 @@ def main():
             out = os.path.join(a.out, "media", f"clip{i}.mp4")
             subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", p, "-an", "-vf", f"fps={FPS},scale=-2:'min(ih,1920)'",
                             "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
-                            "-movflags", "+faststart", out], check=True)
+                            "-g", str(FPS), "-keyint_min", str(FPS), "-movflags", "+faststart", out], check=True)
             sc["_media"], sc["_size"] = f"media/clip{i}.mp4", probe_size(out)
             if sc.get("crop"):  # crop is given in the source's pixels; the copy may be scaled
                 f = sc["_size"][0] / probe_size(p)[0]

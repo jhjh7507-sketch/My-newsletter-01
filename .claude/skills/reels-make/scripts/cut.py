@@ -111,6 +111,7 @@ def main():
                         "-vf", f"fps={fps}", "-frames:v", str(n),
                         "-af", f"apad=whole_dur={d:.6f},atrim=0:{d:.6f}",
                         "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
+                        "-g", str(round(fps)), "-keyint_min", str(round(fps)),  # renderer seeks; sparse keyframes freeze
                         "-c:a", "pcm_s16le", p], check=True)
         parts.append(p)
         durs.append(d)
