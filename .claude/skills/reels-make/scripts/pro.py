@@ -128,11 +128,15 @@ def clip(i, sc, s, C):
     cx, cy, cw, ch = sc.get("crop") or (0, 0, sw, sh)
     # cover fills the scene (cropping more); contain shows the whole crop on black
     k = (min if sc.get("fit") == "contain" else max)(bw / cw, bh / ch)
-    left, top = -cx * k + (bw - cw * k) / 2, -cy * k + (bh - ch * k) / 2
-    vid = (f'<video class="clip" id="sc{i}vid" src="{sc["_media"]}" muted data-start="{s:.3f}" '
+    # the video sits in a window the size of the crop, so nothing outside the crop (menus) shows
+    ww, wh = min(bw, cw * k), min(bh, ch * k)
+    wx, wy = (bw - ww) / 2, (bh - wh) / 2
+    left, top = -cx * k + (cw * k - ww) / -2, -cy * k + (ch * k - wh) / -2
+    vid = (f'<div class="ac-win" style="left:{wx:.0f}px;top:{wy:.0f}px;width:{ww:.0f}px;height:{wh:.0f}px">'
+           f'<video class="clip" id="sc{i}vid" src="{sc["_media"]}" muted data-start="{s:.3f}" '
            f'data-duration="{sc["_dur"]:.3f}" data-media-start="{float(sc.get("from", 0)):.3f}" '
            f'data-track-index="{sc["_track"]}" style="left:{left:.0f}px;top:{top:.0f}px;right:auto;bottom:auto;'
-           f'width:{sw * k:.0f}px;height:{sh * k:.0f}px;object-fit:fill"></video>')
+           f'width:{sw * k:.0f}px;height:{sh * k:.0f}px;object-fit:fill"></video></div>')
     chips, js, pops = [], [], []
     for n, c in enumerate(sc.get("labels", [])):
         col = tone(C, c.get("tone", "red"))
@@ -315,6 +319,7 @@ def css(C):
 .pn-chip{{opacity:0;color:#fff;border-radius:999px;padding:8px 28px;font-weight:900;font-size:42px}}
 .ac,.ac-in{{position:absolute;inset:0;overflow:hidden}}
 .ac-chip{{position:absolute;z-index:2;opacity:0;white-space:nowrap;font-size:36px;font-weight:800;color:#fff;border-radius:999px;padding:12px 28px;box-shadow:0 8px 30px rgba(0,0,0,.45)}}
+.ac-win{{position:absolute;overflow:hidden}}
 .ac-svg{{position:absolute;inset:0;width:100%;height:100%;z-index:1;overflow:visible}}
 .ac-ring{{position:absolute;z-index:2;opacity:0;border:7px solid;border-radius:50%}}
 .ac-head{{z-index:2;top:0;padding:52px 0 70px;color:#fff;font-size:44px;text-shadow:0 2px 12px rgba(0,0,0,.9);background:linear-gradient(180deg,{C['bg']}e6 0%,{C['bg']}99 55%,{C['bg']}00 100%)}}
