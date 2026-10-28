@@ -120,7 +120,9 @@ def clip(i, sc, s, C):
     build.py copies the file and sets _media, _size (source w, h), _box (scene
     w, h), _dur and _track. `crop` is [x, y, w, h] in source pixels (drop the
     app's menus); `from` is the source second to start at; `zoom` a slow push;
-    `labels` are chips and `rings` glowing circles, both at x, y in 0-1 of the scene.
+    `labels` are chips and `rings` glowing circles, both at x, y in 0-1 of the scene;
+    `lines` (a, b, tone, dash, t, rot, pivot, rot_t) and `arrows` (pts: 2 or 3
+    points, tone, t) are drawn on the picture and zoom with it.
     """
     (sw, sh), (bw, bh) = sc["_size"], sc["_box"]
     cx, cy, cw, ch = sc.get("crop") or (0, 0, sw, sh)
@@ -149,10 +151,44 @@ def clip(i, sc, s, C):
         js.append(f'tl.fromTo("#sc{i}r{n}",{{xPercent:-50,yPercent:-50,opacity:0,scale:1.5}},{{xPercent:-50,yPercent:-50,'
                   f'opacity:1,scale:1,duration:.45,ease:"back.out(2)",immediateRender:false}},{t:.3f});')
         pops.append(t)
+    # lines and arrows drawn on the anatomy (inside the zoomed layer, so they stay on the bones):
+    # a line can turn about a pivot, e.g. the ASIS-PSIS line rotating into an anterior tilt
+    px = lambda q: (float(q[0]) * bw, float(q[1]) * bh)
+    paint = lambda name: "#ffffff" if name == "white" else tone(C, name)
+    marks = []
+    for n, ln in enumerate(sc.get("lines", [])):
+        (x1, y1), (x2, y2), col = px(ln["a"]), px(ln["b"]), paint(ln.get("tone", "red"))
+        dash = ' stroke-dasharray="14 12"' if ln.get("dash") else ""
+        marks.append(f'<line id="sc{i}ln{n}" x1="{x1:.0f}" y1="{y1:.0f}" x2="{x2:.0f}" y2="{y2:.0f}" stroke="{col}" '
+                     f'stroke-width="{ln.get("w", 9)}" stroke-linecap="round"{dash} opacity="0" '
+                     f'style="filter:drop-shadow(0 0 10px {col})"/>')
+        for q in (ln["a"], ln["b"]):
+            marks.append(f'<circle class="sc{i}ln{n}d" cx="{px(q)[0]:.0f}" cy="{px(q)[1]:.0f}" r="13" fill="{col}" opacity="0"/>')
+        t = float(ln.get("t", s + .3))
+        js.append(f'tl.fromTo("#sc{i}ln{n}, #sc{i} .sc{i}ln{n}d",{{opacity:0}},{{opacity:1,duration:.3,immediateRender:false}},{t:.3f});')
+        if ln.get("rot"):
+            cx, cy = px(ln.get("pivot", [(float(ln["a"][0]) + float(ln["b"][0])) / 2, (float(ln["a"][1]) + float(ln["b"][1])) / 2]))
+            js.append(f'tl.fromTo("#sc{i}ln{n}, #sc{i} .sc{i}ln{n}d",{{rotation:0,svgOrigin:"{cx:.0f} {cy:.0f}"}},'
+                      f'{{rotation:{float(ln["rot"])},svgOrigin:"{cx:.0f} {cy:.0f}",duration:{float(ln.get("rot_dur", 1.0))},'
+                      f'ease:"power2.inOut",immediateRender:false}},{float(ln.get("rot_t", t + .4)):.3f});')
+        pops.append(t)
+    for n, ar in enumerate(sc.get("arrows", [])):
+        pts, col = [px(q) for q in ar["pts"]], paint(ar.get("tone", "red"))
+        d = f"M {pts[0][0]:.0f} {pts[0][1]:.0f} " + (f"Q {pts[1][0]:.0f} {pts[1][1]:.0f} {pts[2][0]:.0f} {pts[2][1]:.0f}"
+                                                     if len(pts) == 3 else f"L {pts[1][0]:.0f} {pts[1][1]:.0f}")
+        marks.append(f'<path id="sc{i}ar{n}" d="{d}" fill="none" stroke="{col}" stroke-width="{ar.get("w", 10)}" '
+                     f'stroke-linecap="round" marker-end="url(#sc{i}ah{n})" style="filter:drop-shadow(0 0 10px {col})"/>'
+                     f'<marker id="sc{i}ah{n}" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">'
+                     f'<path d="M0,0 L5,2.5 L0,5 Z" fill="{col}"/></marker>')
+        t = float(ar.get("t", s + .5))
+        js.append(f'tl.fromTo("#sc{i}ar{n}",{{strokeDasharray:1600,strokeDashoffset:1600,opacity:0}},{{strokeDashoffset:0,opacity:1,'
+                  f'duration:{float(ar.get("dur", .6))},ease:"power2.out",immediateRender:false}},{t:.3f});')
+        pops.append(t)
+    svg = (f'<svg class="ac-svg" viewBox="0 0 {bw} {bh}">{"".join(marks)}</svg>') if marks else ""
     js.insert(0, f'tl.fromTo("#sc{i} .ac-in",{{scale:1}},{{scale:{float(sc.get("zoom", 1.06))},'
                  f'duration:{sc["_dur"]:.3f},ease:"none",immediateRender:false}},{s:.3f});')
     title = f'<div class="pv-head ac-head">{esc(sc["title"])}</div>' if sc.get("title") else ""
-    return f'<div class="ac"><div class="ac-in">{vid}</div>{"".join(chips)}{title}</div>', js, pops
+    return f'<div class="ac"><div class="ac-in">{vid}{svg}</div>{"".join(chips)}{title}</div>', js, pops
 
 
 # --- pelvis as the coaches' water bowl, side view facing right ---
@@ -278,6 +314,7 @@ def css(C):
 .pn-chip{{opacity:0;color:#fff;border-radius:999px;padding:8px 28px;font-weight:900;font-size:42px}}
 .ac,.ac-in{{position:absolute;inset:0;overflow:hidden}}
 .ac-chip{{position:absolute;z-index:2;opacity:0;white-space:nowrap;font-size:36px;font-weight:800;color:#fff;border-radius:999px;padding:12px 28px;box-shadow:0 8px 30px rgba(0,0,0,.45)}}
+.ac-svg{{position:absolute;inset:0;width:100%;height:100%;z-index:1;overflow:visible}}
 .ac-ring{{position:absolute;z-index:2;opacity:0;border:7px solid;border-radius:50%}}
 .ac-head{{z-index:2;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8)}}
 .pvw{{position:absolute;inset:0}}

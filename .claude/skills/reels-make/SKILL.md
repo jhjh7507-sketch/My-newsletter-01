@@ -183,7 +183,15 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   muscle itself is the point. Keep one clip scene to 2-5 seconds like any other.
   Recordings already made, with their seconds and crops, are listed in
   `.claude/instagram/anatomy.md`; reuse them before asking for a new one.
-- Moving anatomy (Higgsfield, the app cannot pose the body): cut a still
+- Show posture changes and muscle actions (a pelvis tilting, a muscle
+  pulling) with the app recording, not AI video: hold a side-view frame
+  (`still`), draw the bony line with `lines` and turn it with `rot` about the
+  joint it turns on (ASIS-PSIS line about the hip joint; anterior tilt is
+  negative when the body faces left), and show the pull with `arrows` along
+  the muscle. Find the landmarks on a gridded crop and check them on a marked
+  still before rendering. AI video got the direction wrong both times it was
+  tried (2026-10-28) and the user rejected it.
+- Moving anatomy with Higgsfield, only where direction does not matter: cut a still
   from the recording where the view holds (side view for posture, the
   muscle highlighted with "Fade others" when it must glow), crop the app's
   menus and pad it to 9:16 with black. Upload it (`media_upload`, then
