@@ -265,9 +265,9 @@ def css(C):
 .pn-bar{{position:relative;margin:50px auto 0;width:820px;height:28px;border-radius:14px;background:rgba(255,255,255,.08);overflow:hidden}}
 .pn-bar i{{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:14px}}
 .pn-row{{display:flex;justify-content:space-between;align-items:center;width:820px;margin:26px auto 0;font-size:38px;font-weight:700;color:{C['muted']}}}
-.pn-chip{{color:#fff;border-radius:999px;padding:8px 28px;font-weight:900;font-size:42px}}
+.pn-chip{{opacity:0;color:#fff;border-radius:999px;padding:8px 28px;font-weight:900;font-size:42px}}
 .ac,.ac-in{{position:absolute;inset:0;overflow:hidden}}
-.ac-chip{{position:absolute;z-index:2;white-space:nowrap;font-size:36px;font-weight:800;color:#fff;border-radius:999px;padding:12px 28px;box-shadow:0 8px 30px rgba(0,0,0,.45)}}
+.ac-chip{{position:absolute;z-index:2;opacity:0;white-space:nowrap;font-size:36px;font-weight:800;color:#fff;border-radius:999px;padding:12px 28px;box-shadow:0 8px 30px rgba(0,0,0,.45)}}
 .ac-head{{z-index:2;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8)}}
 .pvw{{position:absolute;inset:0}}
 .pv{{position:absolute;inset:0;width:100%;height:100%}}
