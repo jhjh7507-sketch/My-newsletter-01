@@ -171,9 +171,16 @@ def main():
     for i, sc in enumerate(scenes):
         if sc.get("type") == "clip":  # screen recordings (anatomy app) shown inside a graphic scene
             p = sc["src"] if os.path.isabs(sc["src"]) else os.path.join(base, sc["src"])
-            name = f"clip{i}{os.path.splitext(p)[1]}"
-            shutil.copy(p, os.path.join(a.out, "media", name))
-            sc["_media"], sc["_size"] = "media/" + name, probe_size(p)
+            # phone screen recordings are HEVC, which the render browser cannot play:
+            # re-encode to H.264, upright, silent, at the reel's frame rate
+            out = os.path.join(a.out, "media", f"clip{i}.mp4")
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", p, "-an", "-vf", f"fps={FPS},scale=-2:'min(ih,1920)'",
+                            "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
+                            "-movflags", "+faststart", out], check=True)
+            sc["_media"], sc["_size"] = f"media/clip{i}.mp4", probe_size(out)
+            if sc.get("crop"):  # crop is given in the source's pixels; the copy may be scaled
+                f = sc["_size"][0] / probe_size(p)[0]
+                sc["crop"] = [v * f for v in sc["crop"]]
     starts = []
     for sc in scenes:
         starts.append(float(sc["start"]) if "start" in sc else find_anchor(words, sc["at"]))
