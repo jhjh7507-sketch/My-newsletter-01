@@ -334,8 +334,10 @@ def main():
     for k, c in enumerate(caps):
         toks = {t for term in emph for t in term.split()}
         mid = (c["start"] + c["end"]) / 2  # the scene a caption mostly sits in decides its look
+        # a caption that spends 40% of its time over a full-frame graphic drops below it
+        inside = sum(max(0, min(b, c["end"]) - max(a, c["start"])) for a, b in low)
         hc = (" hot" if any(a <= mid < b for a, b in hot) else "") + \
-             (" low" if any(a <= mid < b for a, b in low) else "")
+             (" low" if inside >= 0.4 * max(0.01, c["end"] - c["start"]) else "")
         txt = " ".join(f"<b>{esc(w)}</b>" if re.sub(r"[^\w]", "", w) in toks or any(
             t and t in w for t in toks if len(t) > 1) else esc(w) for w in c["words"])
         clips.append(f'<div class="clip cap{hc}" id="cap{k}" data-start="{c["start"]:.3f}" '
