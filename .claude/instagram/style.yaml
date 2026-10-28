@@ -1,50 +1,57 @@
-# Edit rules for /reels-make. Measured by /reels-style; edit values, keep keys.
+# Edit rules for /reels-make, A account (재활·체형교정 정보형). Edit values, keep keys.
+# Info reels use plan "layout": "mixed"; humor reels use "layout": "full" (captions only).
 source:
-  - "@use.ai.likejimin AI 영상 편집기 릴스 (화면 녹화 4개, 2026-10-24) - 수치는 영상 속 규칙 파일 표기값"
+  - "기준: 얼굴반반편집 (@lazy_owen, 2026-10-28 화면 녹화) - 장면마다 얼굴 전체 / 위 그래픽 아래 얼굴 / 그래픽 전체가 1~3초 단위로 바뀜, 자막은 화면 가운데 이음선에 고정, 박스 없는 흰 글씨 + 검은 테두리, 강조 문장은 노란색"
+  - "부품: 반반편집 (@use.ai.likejimin) - 글을 다시 쓰지 않고 '물건'을 보여주는 그래픽(큰 숫자, 진행 막대, 순서 아이콘)"
+  - "부품: 얼굴반반 3개 (@grit_park_ 번호 태그와 비교 도식 / @apiket_marketing_teacher 빨간 키워드 헤드라인 / 유리 질감 카드)"
+  - "색은 해부학 앱 화면(검은 배경, 빨간 근육)과 맞춤: 빨강 = 긴장, 파랑 = 늘어남"
 
 canvas: {w: 1080, h: 1920, fps: 30}
 font: Pretendard
 
 colors:
-  bg: "#efe7e4"          # 연한 분홍 베이지 배경
-  panel: "#ffffff"       # 카드
-  ink: "#1d1d1f"
-  muted: "#8a8a8e"
-  accent: "#d65745"      # 코랄 레드 강조
-  caption_bg: "#2b2b2d"  # 자막 박스
+  bg: "#07090d"          # 거의 검정. 해부학 클립과 이어짐
+  panel: "#121620"       # 비교 상자 등 면
+  ink: "#f4f6fa"
+  muted: "#8a93a3"
+  accent: "#ff4d5e"      # 빨강: 긴장, 통증, 강조 막대
+  accent2: "#38b6ff"     # 파랑: 늘어남, 약해짐
+  caption_bg: "#000000"  # box: false라 쓰지 않음
   caption_ink: "#ffffff"
-  caption_accent: "#ffc93c"
+  caption_accent: "#ffd23f"  # 강조 문장 노랑 (기준 영상)
 
 layout:
-  split_y: 860           # 얼굴/캐릭터 모드: 위 그래픽, 아래 영상 경계
+  split_y: 960           # 기준 영상: 정확히 반반
 
 caption:
-  y_split: 864           # 경계선 위 자막 (레퍼런스: 이음선 위치 864px)
-  y_full: 1420           # 얼굴 없는 모드 자막 위치
-  size: 62
+  y_split: 960
+  y_full: 1400           # 웃긴형 전체 화면: 아래쪽
+  y_mixed: 960           # 정보형: 이음선에 고정 (기준 영상)
+  size: 64
   weight: 800
   min_words: 1
-  max_words: 3           # 레퍼런스: 자막 1~3어절
-  box: true
+  max_words: 3           # 기준 영상: 한 번에 2~5단어, 한국어 어절로 1~3
+  box: false
+  stroke: true           # 흰 글씨 + 검은 테두리
 
 motion:
-  card_rise_px: 52       # 레퍼런스: 카드 상승 52px
+  card_rise_px: 40
   ease: expo.out
-  in_dur: 0.5
-  stagger: 0.12
-  face_push_frames: 37   # 레퍼런스: 얼굴 푸시인 37프레임
-  face_push_scale: 1.06
+  in_dur: 0.45
+  stagger: 0.1
+  face_push_frames: 8    # 얼굴 장면 시작마다 빠르게 확대
+  face_push_scale: 1.08
 
 cut:
-  pad: 0.12              # 레퍼런스: 쉼 0.12초
+  pad: 0.12
   max_gap: 0.35
 
 sfx:
   scene: whoosh
   item: pop
-  volume: 0.35
+  volume: 0.28
 
 voice:
   provider: elevenlabs
-  voice_id: JBFqnCBsd6RMkjVDRZzb   # 기본값. 사용자가 고른 목소리로 바꿀 것
+  voice_id: JBFqnCBsd6RMkjVDRZzb   # A 계정은 AI 목소리를 쓰지 않음. B 계정용 기본값
   speed: 1.05

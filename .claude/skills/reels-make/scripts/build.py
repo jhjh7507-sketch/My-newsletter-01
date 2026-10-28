@@ -16,6 +16,9 @@ import sys
 
 import yaml
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import pro  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 PUNCT = re.compile(r"[.,!?…~]$")
 
@@ -92,7 +95,7 @@ def mark(text, terms):
 
 
 def scene_html(i, sc, emph):
-    kind = sc.get("type", "title")
+    kind = sc.get("type", "title" if "title" in sc else "none")
     kicker = f'<div class="kicker">{esc(sc["kicker"])}</div>' if sc.get("kicker") else ""
     terms = emph + ([sc["highlight"]] if sc.get("highlight") else [])
     if kind == "none":
@@ -163,19 +166,47 @@ def main():
     # "full" puts footage on the whole canvas with captions and an optional hook
     # line on top: for skits and reactions, where a card would hide the joke.
     full = plan.get("layout") == "full" and mode in ("face", "character")
-    split = mode in ("face", "character") and not full
-    cap_y = CAP["y_split"] if split else CAP["y_full"]
+    # "mixed" switches per scene between "face" (footage fills the frame), "split"
+    # (graphic on top, footage below) and "full" (graphic fills the frame), with the
+    # caption fixed on the seam. Built from the reference reels of 2026-10-28.
+    mixed = plan.get("layout") == "mixed" and mode in ("face", "character")
+    split = mode in ("face", "character") and not full and not mixed
+    cap_y = CAP.get("y_mixed", L["split_y"]) if mixed else (CAP["y_split"] if split else CAP["y_full"])
+    sy = L["split_y"]
     caps = chunk_captions(words, CAP["min_words"], CAP["max_words"])
 
     clips, js = [], []
     vol = st["sfx"]["volume"]
+    push = M["face_push_frames"] / FPS
     for i, sc in enumerate(scenes):
         s = starts[i]
         e = starts[i + 1] if i + 1 < len(scenes) else D
+        lay = sc.get("layout", "split") if mixed else None
+        if mixed and lay == "face":
+            js.append(f'tl.set("#ftw",{{top:0,height:{H}}},{s:.3f});'
+                      f'tl.fromTo("#ft",{{scale:1}},{{scale:{M["face_push_scale"]},duration:{push:.3f},'
+                      f'ease:"power2.out"}},{s:.3f});')
+        elif mixed and lay == "split":
+            js.append(f'tl.set("#ftw",{{top:{sy},height:{H - sy}}},{s:.3f});tl.set("#ft",{{scale:1}},{s:.3f});')
+        if mixed and st["sfx"].get("scene") and i > 0:
+            clips.append(f'<audio src="media/{st["sfx"]["scene"]}.wav" data-start="{s:.3f}" '
+                         f'data-duration="0.45" data-volume="{vol}" data-track-index="5"></audio>')
+        if sc.get("type") in pro.BUILDERS:
+            inner, pjs, pops = pro.BUILDERS[sc["type"]](i, sc, s, C)
+            glow = pro.tone(C, sc.get("glow", "red"))
+            bg = f'background:radial-gradient(110% 70% at 50% 38%,{glow}2e 0%,transparent 60%),{C["bg"]}'
+            clips.append(f'<div class="clip scene lay-{lay or "split"}" id="sc{i}" style="{bg}" data-start="{s:.3f}" '
+                         f'data-duration="{e - s:.3f}" data-track-index="1">{inner}</div>')
+            js += pjs
+            for t in pops:
+                clips.append(f'<audio src="media/{st["sfx"]["item"]}.wav" data-start="{t:.3f}" '
+                             f'data-duration="0.09" data-volume="{vol}" data-track-index="6"></audio>')
+            continue
         inner = scene_html(i, sc, emph)
         if not inner:
             continue
-        clips.append(f'<div class="clip scene" id="sc{i}" data-start="{s:.3f}" '
+        cls = f" lay-{lay}" if mixed else ""
+        clips.append(f'<div class="clip scene{cls}" id="sc{i}" data-start="{s:.3f}" '
                      f'data-duration="{e - s:.3f}" data-track-index="1">{inner}</div>')
         if sc.get("type") == "hook":
             # readable from the first frame: a small settle, never a fade from nothing
@@ -193,7 +224,7 @@ def main():
                       f'const to=parseFloat(el.dataset.to);const dec=(el.dataset.to.split(".")[1]||"").length;'
                       f'const o={{v:0}};tl.to(o,{{v:to,duration:0.9,ease:"power2.out",'
                       f'onUpdate:()=>{{el.textContent=o.v.toFixed(dec)}}}},{s + 0.1:.3f});}})();')
-        if st["sfx"].get("scene") and i > 0:
+        if st["sfx"].get("scene") and i > 0 and not mixed:
             clips.append(f'<audio src="media/{st["sfx"]["scene"]}.wav" data-start="{s:.3f}" '
                          f'data-duration="0.45" data-volume="{vol}" data-track-index="5"></audio>')
         n_items = len(sc.get("items", [])) if sc.get("type") in ("list", "steps") else 0
@@ -202,15 +233,14 @@ def main():
             clips.append(f'<audio src="media/{st["sfx"]["item"]}.wav" data-start="{t:.3f}" '
                          f'data-duration="0.09" data-volume="{vol}" data-track-index="6"></audio>')
 
-    if (split or full) and media.get("video"):
+    if (split or full or mixed) and media.get("video"):
         has_audio = 'data-has-audio="true"' if not media.get("voice") else "muted"
-        clips.append(f'<div class="footage"><video id="ft" class="clip" src="{media["video"]}" '
+        clips.append(f'<div class="footage" id="ftw"><video id="ft" class="clip" src="{media["video"]}" '
                      f'data-start="0" data-duration="{D}" {has_audio} data-track-index="0"></video></div>')
     elif (split or full) and media.get("image"):
         clips.append(f'<div class="footage"><img id="ft" class="clip" src="{media["image"]}" '
                      f'data-start="0" data-duration="{D}" data-track-index="0" /></div>')
     if (split or full) and (media.get("video") or media.get("image")):
-        push = M["face_push_frames"] / FPS
         for s in [0.0] + starts[1:]:
             js.append(f'tl.fromTo("#ft",{{scale:1}},{{scale:{M["face_push_scale"]},'
                       f'duration:{push:.3f},ease:"power2.out"}},{s:.3f});')
@@ -218,18 +248,25 @@ def main():
         clips.append(f'<audio src="{media["voice"]}" data-start="0" data-duration="{D}" '
                      f'data-track-index="4"></audio>')
 
+    span = lambda i: (starts[i], starts[i + 1] if i + 1 < len(scenes) else D)
+    hot = [span(i) for i, sc in enumerate(scenes) if sc.get("hot")]
+    # a full-frame graphic sits on the centre line, so its captions drop below it
+    low = [span(i) for i, sc in enumerate(scenes) if mixed and sc.get("layout") == "full"]
     for k, c in enumerate(caps):
         toks = {t for term in emph for t in term.split()}
+        mid = (c["start"] + c["end"]) / 2  # the scene a caption mostly sits in decides its look
+        hc = (" hot" if any(a <= mid < b for a, b in hot) else "") + \
+             (" low" if any(a <= mid < b for a, b in low) else "")
         txt = " ".join(f"<b>{esc(w)}</b>" if re.sub(r"[^\w]", "", w) in toks or any(
             t and t in w for t in toks if len(t) > 1) else esc(w) for w in c["words"])
-        clips.append(f'<div class="clip cap" id="cap{k}" data-start="{c["start"]:.3f}" '
+        clips.append(f'<div class="clip cap{hc}" id="cap{k}" data-start="{c["start"]:.3f}" '
                      f'data-duration="{max(0.08, c["end"] - c["start"]):.3f}" data-track-index="3">'
                      f'<span>{txt}</span></div>')
         js.append(f'tl.fromTo("#cap{k} span",{{scale:0.92,opacity:0}},{{scale:1,opacity:1,'
                   f'duration:0.12,ease:"back.out(2)"}},{c["start"]:.3f});')
 
     top = L["split_y"] if split else H
-    ftop = 0 if full else top
+    ftop = 0 if (full or mixed) else top
     fy = plan.get("focus_y")
     ft_pos = f"50% {float(fy) * 100:.0f}%" if fy is not None else "50% 50%"
     ft_origin = f"50% {float(fy) * 100:.0f}%" if fy is not None else "50% 40%"
@@ -259,7 +296,13 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{C['bg']}}}
 .footage #ft{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:{ft_pos};transform-origin:{ft_origin}}}
 .cap{{z-index:5;top:{cap_y}px;bottom:auto;height:auto;display:flex;justify-content:center;transform:translateY(-50%)}}
 .cap span{{display:inline-block;font-size:{CAP['size']}px;font-weight:{CAP['weight']};color:{C['caption_ink']};{"background:" + C['caption_bg'] + ";padding:10px 24px;border-radius:12px;" if CAP['box'] else "text-shadow:0 4px 14px rgba(0,0,0,.6);"}letter-spacing:-.02em}}
-.cap b{{color:{C['caption_accent']}}}"""
+.cap b,.cap.hot span{{color:{C['caption_accent']}}}
+.lay-split{{height:{sy}px!important;padding:0 60px}}.lay-full{{height:{H}px!important;padding:0 60px}}
+.lay-face{{height:{sy}px!important}}
+.cap.low{{top:{CAP.get("y_low", 1560)}px}}
+""" + (pro.css(C) if mixed else "") + (
+        ".cap span{background:none!important;padding:0!important;-webkit-text-stroke:9px rgba(0,0,0,.9);"
+        "paint-order:stroke fill;text-shadow:0 6px 20px rgba(0,0,0,.45)}" if CAP.get("stroke") else "")
 
     doc = f"""<!doctype html>
 <html lang="ko" data-resolution="portrait">

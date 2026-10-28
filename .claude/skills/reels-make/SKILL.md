@@ -144,6 +144,21 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
 - Scene types: `title` (title, sub), `list` (title, items), `steps` (title,
   items, active), `stat` (label, value, unit; counts up), `quote` (text),
   `none` (no card, footage only). `kicker` is the small pill label on any card.
+- `"layout": "mixed"` (face): the A account's info style, from the reference
+  reels of 2026-10-28. Every scene sets `"layout"`: `face` (footage fills the
+  frame, quick push-in), `split` (graphic on top, footage below) or `full`
+  (graphic fills the frame, its captions drop below it). Captions sit on the
+  centre line, white with a black outline; `"hot": true` turns a scene's
+  captions yellow, for the one line that must land. Change the scene every
+  2-5 seconds, on a sentence. Graphic types (pro.py) show the idea instead of
+  repeating the words: `keyword` (text, kicker, sub, tone: one big term with a
+  highlight sweep), `compare` (title, left and right: title, state, dir
+  up/down, tone red/blue), `chain` (title, items with text and absolute `t`
+  seconds, lighting up in order), `pelvis` (state tilt/glute/flexor, title:
+  the tilting water bowl with the glute stretched in blue and the hip flexor
+  tight in red). `glow` red/blue tints the background. Red means tight or
+  painful, blue means stretched or weak. Never write a sentence into a graphic;
+  the caption already says it.
 - `"layout": "full"` (face, character): footage fills the whole frame, captions
   sit low, and cards are not used. Use it for skits, reactions and anything
   where the face is the joke. Its scene type is `hook` (text; `\n` breaks the
