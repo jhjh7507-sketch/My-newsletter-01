@@ -183,6 +183,22 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   muscle itself is the point. Keep one clip scene to 2-5 seconds like any other.
   Recordings already made, with their seconds and crops, are listed in
   `.claude/instagram/anatomy.md`; reuse them before asking for a new one.
+- Moving anatomy (Higgsfield, the app cannot pose the body): cut a still
+  from the recording where the view holds (side view for posture, the
+  muscle highlighted with "Fade others" when it must glow), crop the app's
+  menus and pad it to 9:16 with black. Upload it (`media_upload`, then
+  `curl -X PUT -H "Content-Type: image/png" -H "If-None-Match: *"
+  --data-binary @f.png URL`, then `media_confirm`) and generate with
+  `kling3_0`, mode std, sound off, 5 s, 9:16 (7.5 credits). Prompt a
+  locked-off camera and a background that stays black. For a posture change
+  give an end pose too: edit the still with `flux_kontext` (GPT Image refuses
+  the anatomy figure as sensitive) and generate with `wan2_7` 720p, passing
+  `start_image` and `end_image` (Kling refused that pair as sensitive; with a
+  start image alone it bent the knees into a squat and once turned the
+  background grey). Download the result from its `result_url`, look at six
+  frames before using it, and use it as a `clip` scene (`src` the mp4).
+  Needs `upload.higgsfield.ai` and `d8j0ntlcm91z4.cloudfront.net` allowed in
+  the environment's network settings.
 - `"layout": "full"` (face, character): footage fills the whole frame, captions
   sit low, and cards are not used. Use it for skits, reactions and anything
   where the face is the joke. Its scene type is `hook` (text; `\n` breaks the
