@@ -154,11 +154,30 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   repeating the words: `keyword` (text, kicker, sub, tone: one big term with a
   highlight sweep), `compare` (title, left and right: title, state, dir
   up/down, tone red/blue), `chain` (title, items with text and absolute `t`
-  seconds, lighting up in order), `pelvis` (state tilt/glute/flexor, title:
-  the tilting water bowl with the glute stretched in blue and the hip flexor
-  tight in red). `glow` red/blue tints the background. Red means tight or
-  painful, blue means stretched or weak. Never write a sentence into a graphic;
-  the caption already says it.
+  seconds, lighting up in order), `counter` (title, from, to, unit, t, label:
+  a big number that runs from `from` to `to` at second `t`, with a shrinking
+  bar and a percentage chip; for "43초가 20.9초가 됐어요"), `clip` (src, from,
+  crop, title, labels, zoom: a screen recording such as the anatomy app,
+  cropped to fill the scene; see below), `pelvis` (state tilt/glute/flexor,
+  title: the tilting water bowl with the glute stretched in blue and the hip
+  flexor tight in red). `glow` red/blue tints the background. Red means tight
+  or painful, blue means stretched or weak. Never write a sentence into a
+  graphic; the caption already says it.
+- Layout changes in `mixed` move instead of cutting (style.yaml
+  `motion.layout_dur`, 0.45 s): face to split slides the panel down from the
+  top while the face slides into the lower half, split to face reverses it,
+  a full graphic wipes down over the face and back up, and graphic to graphic
+  crossfades. Nothing to set in the plan.
+- Anatomy app recordings (`"type": "clip"`): the user records the app on the
+  phone or iPad and uploads it to the same Drive folder. Download it next to
+  plan.json, run `/watch` on it to find the seconds where the right muscle is
+  on screen, and give each scene `"src"`, `"from"` (source second) and
+  `"crop": [x, y, w, h]` in source pixels to cut away the app's menus and
+  status bar (check the crop on a frame: `ffmpeg -ss FROM -i SRC -frames:v 1
+  -vf crop=w:h:x:y f.jpg`). `labels` are chips on the picture: text, x and y
+  (0-1 within the scene), tone red/blue, t (absolute seconds). Use `split` to
+  keep the face below while the muscle is shown, `full` for the moment the
+  muscle itself is the point. Keep one clip scene to 2-5 seconds like any other.
 - `"layout": "full"` (face, character): footage fills the whole frame, captions
   sit low, and cards are not used. Use it for skits, reactions and anything
   where the face is the joke. Its scene type is `hook` (text; `\n` breaks the

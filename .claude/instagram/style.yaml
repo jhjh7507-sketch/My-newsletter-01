@@ -41,6 +41,8 @@ motion:
   stagger: 0.1
   face_push_frames: 8    # 얼굴 장면 시작마다 빠르게 확대
   face_push_scale: 1.08
+  layout_dur: 0.45       # 얼굴 전체 <-> 반반 <-> 그래픽 전체가 바뀔 때 미끄러지는 시간
+  layout_ease: power2.inOut
 
 cut:
   pad: 0.12

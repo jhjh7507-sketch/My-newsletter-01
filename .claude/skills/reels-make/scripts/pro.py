@@ -1,4 +1,4 @@
-"""Graphic scenes for the "mixed" info layout: keyword, compare, chain, pelvis.
+"""Graphic scenes for the "mixed" info layout: keyword, compare, chain, counter, clip, pelvis.
 
 Each builder takes (i, sc, s, C) - scene index, scene dict, start second and the
 style colours - and returns (html, js, pops): the scene's inner HTML, GSAP lines
@@ -78,6 +78,71 @@ def chain(i, sc, s, C):
     head = f'<div class="ch-head">{esc(sc["title"])}</div>' if sc.get("title") else ""
     js.append(f'tl.fromTo("#sc{i} .ch-head",{{opacity:0,y:16}},{{opacity:1,y:0,duration:.3}},{s:.3f});')
     return f'<div class="ch">{head}<div class="ch-row">{"".join(parts)}</div></div>', js, pops
+
+
+def counter(i, sc, s, C):
+    """A number that drops (or climbs) from `from` to `to` at second `t`, with a bar.
+
+    The renderer seeks with events suppressed, so the digits are pre-rendered
+    spans switched with tl.set, one per frame, instead of an onUpdate tween.
+    """
+    a, b, unit = float(sc["from"]), float(sc["to"]), sc.get("unit", "")
+    t, n = float(sc.get("t", s + .6)), 24
+    dec = max(len(str(sc[k]).split(".")[1]) if "." in str(sc[k]) else 0 for k in ("from", "to"))
+    col = tone(C, sc.get("tone", "blue"))
+    vals = [a + (b - a) * (1 - (1 - k / n) ** 2) for k in range(n + 1)]
+    fmt = lambda k, v: str(sc["from"]) if k == 0 else f"{v:.{dec}f}"
+    on = lambda k: ' class="on"' if k == 0 else ""
+    spans = "".join(f'<span id="sc{i}v{k}"{on(k)}>{esc(fmt(k, v))}<small>{esc(unit)}</small></span>'
+                    for k, v in enumerate(vals))
+    js = [f'tl.fromTo("#sc{i} .pn-head",{{opacity:0,y:16}},{{opacity:1,y:0,duration:.3}},{s:.3f});',
+          f'tl.fromTo("#sc{i} .pn-num",{{opacity:0,scale:.9}},{{opacity:1,scale:1,duration:.4,ease:"back.out(2)"}},{s + .1:.3f});',
+          f'tl.fromTo("#sc{i} .pn-bar",{{opacity:0}},{{opacity:1,duration:.3}},{s + .25:.3f});']
+    for k in range(1, n + 1):
+        tk = t + k / 30
+        js.append(f'tl.set("#sc{i}v{k}",{{opacity:1}},{tk:.3f});tl.set("#sc{i}v{k - 1}",{{opacity:0}},{tk:.3f});')
+    js += [f'tl.fromTo("#sc{i}bar",{{width:"100%"}},{{width:"{b / a * 100:.1f}%",duration:{n / 30:.2f},ease:"power2.out",'
+           f'immediateRender:false}},{t:.3f});',
+           f'tl.fromTo("#sc{i} .pn-chip",{{opacity:0,scale:.6}},{{opacity:1,scale:1,duration:.35,ease:"back.out(3)",'
+           f'immediateRender:false}},{t + n / 30:.3f});']
+    chip = sc.get("chip") or f"{(b - a) / a * 100:+.0f}%".replace("-", "−")
+    left = f'<span>{esc(sc["label"])}</span>' if sc.get("label") else "<span></span>"
+    head = f'<div class="pn-head">{esc(sc["title"])}</div>' if sc.get("title") else ""
+    body = (f'<div class="pn">{head}<div class="pn-num">{spans}</div>'
+            f'<div class="pn-bar"><i id="sc{i}bar" style="background:{col}"></i></div>'
+            f'<div class="pn-row">{left}<b class="pn-chip" style="background:{col}">{esc(chip)}</b></div></div>')
+    return body, js, [t, t + n / 30]
+
+
+def clip(i, sc, s, C):
+    """A screen recording (the anatomy app) cropped to fill the scene, with labels.
+
+    build.py copies the file and sets _media, _size (source w, h), _box (scene
+    w, h), _dur and _track. `crop` is [x, y, w, h] in source pixels (drop the
+    app's menus); `from` is the source second to start at; `zoom` a slow push.
+    """
+    (sw, sh), (bw, bh) = sc["_size"], sc["_box"]
+    cx, cy, cw, ch = sc.get("crop") or (0, 0, sw, sh)
+    k = max(bw / cw, bh / ch)
+    left, top = -cx * k + (bw - cw * k) / 2, -cy * k + (bh - ch * k) / 2
+    vid = (f'<video class="clip" id="sc{i}vid" src="{sc["_media"]}" muted data-start="{s:.3f}" '
+           f'data-duration="{sc["_dur"]:.3f}" data-media-start="{float(sc.get("from", 0)):.3f}" '
+           f'data-track-index="{sc["_track"]}" style="left:{left:.0f}px;top:{top:.0f}px;right:auto;bottom:auto;'
+           f'width:{sw * k:.0f}px;height:{sh * k:.0f}px;object-fit:fill"></video>')
+    chips, js, pops = [], [], []
+    for n, c in enumerate(sc.get("labels", [])):
+        col = tone(C, c.get("tone", "red"))
+        x = min(max(float(c.get("x", .5)) * bw, 40 + 17 * len(c["text"]) + 28), bw - 40 - 17 * len(c["text"]) - 28)
+        chips.append(f'<div class="ac-chip" id="sc{i}c{n}" style="left:{x:.0f}px;top:{float(c.get("y", .5)) * bh:.0f}px;'
+                     f'background:{col}">{esc(c["text"])}</div>')
+        t = float(c.get("t", s + .4 + n * .5))
+        js.append(f'tl.fromTo("#sc{i}c{n}",{{xPercent:-50,yPercent:-50,opacity:0,scale:.6}},{{xPercent:-50,yPercent:-50,'
+                  f'opacity:1,scale:1,duration:.35,ease:"back.out(3)",immediateRender:false}},{t:.3f});')
+        pops.append(t)
+    js.insert(0, f'tl.fromTo("#sc{i} .ac-in",{{scale:1}},{{scale:{float(sc.get("zoom", 1.06))},'
+                 f'duration:{sc["_dur"]:.3f},ease:"none",immediateRender:false}},{s:.3f});')
+    title = f'<div class="pv-head ac-head">{esc(sc["title"])}</div>' if sc.get("title") else ""
+    return f'<div class="ac"><div class="ac-in">{vid}</div>{"".join(chips)}{title}</div>', js, pops
 
 
 # --- pelvis as the coaches' water bowl, side view facing right ---
@@ -161,7 +226,8 @@ def pelvis(i, sc, s, C):
     return f'<div class="pvw">{title}{svg}</div>', js, [s + .5]
 
 
-BUILDERS = {"keyword": keyword, "compare": compare, "chain": chain, "pelvis": pelvis}
+BUILDERS = {"keyword": keyword, "compare": compare, "chain": chain, "counter": counter, "clip": clip,
+            "pelvis": pelvis}
 
 
 def css(C):
@@ -190,6 +256,19 @@ def css(C):
 .ch-lbl{{font-size:50px;font-weight:900;color:{C['ink']}}}
 .ch-line{{width:110px;height:8px;margin:0 6px 82px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}}
 .ch-line i{{display:block;width:100%;height:100%;transform-origin:left center}}
+.pn{{width:100%;text-align:center}}
+.pn-head{{font-size:44px;font-weight:800;color:{C['muted']};letter-spacing:.06em;margin-bottom:24px}}
+.pn-num{{position:relative;height:290px}}
+.pn-num span{{position:absolute;left:0;right:0;top:0;opacity:0;font-size:250px;font-weight:900;letter-spacing:-.04em;line-height:290px;color:#fff;font-variant-numeric:tabular-nums}}
+.pn-num span.on{{opacity:1}}
+.pn-num small{{font-size:100px;margin-left:10px;letter-spacing:0}}
+.pn-bar{{position:relative;margin:50px auto 0;width:820px;height:28px;border-radius:14px;background:rgba(255,255,255,.08);overflow:hidden}}
+.pn-bar i{{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:14px}}
+.pn-row{{display:flex;justify-content:space-between;align-items:center;width:820px;margin:26px auto 0;font-size:38px;font-weight:700;color:{C['muted']}}}
+.pn-chip{{color:#fff;border-radius:999px;padding:8px 28px;font-weight:900;font-size:42px}}
+.ac,.ac-in{{position:absolute;inset:0;overflow:hidden}}
+.ac-chip{{position:absolute;z-index:2;white-space:nowrap;font-size:36px;font-weight:800;color:#fff;border-radius:999px;padding:12px 28px;box-shadow:0 8px 30px rgba(0,0,0,.45)}}
+.ac-head{{z-index:2;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8)}}
 .pvw{{position:absolute;inset:0}}
 .pv{{position:absolute;inset:0;width:100%;height:100%}}
 .pv-head{{position:absolute;top:56px;left:0;right:0;text-align:center;font-size:40px;font-weight:800;color:{C['muted']};letter-spacing:.06em;z-index:1}}
