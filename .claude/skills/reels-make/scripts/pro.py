@@ -119,7 +119,8 @@ def clip(i, sc, s, C):
 
     build.py copies the file and sets _media, _size (source w, h), _box (scene
     w, h), _dur and _track. `crop` is [x, y, w, h] in source pixels (drop the
-    app's menus); `from` is the source second to start at; `zoom` a slow push.
+    app's menus); `from` is the source second to start at; `zoom` a slow push;
+    `labels` are chips and `rings` glowing circles, both at x, y in 0-1 of the scene.
     """
     (sw, sh), (bw, bh) = sc["_size"], sc["_box"]
     cx, cy, cw, ch = sc.get("crop") or (0, 0, sw, sh)
@@ -138,6 +139,15 @@ def clip(i, sc, s, C):
         t = float(c.get("t", s + .4 + n * .5))
         js.append(f'tl.fromTo("#sc{i}c{n}",{{xPercent:-50,yPercent:-50,opacity:0,scale:.6}},{{xPercent:-50,yPercent:-50,'
                   f'opacity:1,scale:1,duration:.35,ease:"back.out(3)",immediateRender:false}},{t:.3f});')
+        pops.append(t)
+    for n, r in enumerate(sc.get("rings", [])):  # a glowing circle round a muscle the app does not colour
+        col, rad = tone(C, r.get("tone", "blue")), float(r.get("r", 120))
+        chips.append(f'<div class="ac-ring" id="sc{i}r{n}" style="left:{float(r["x"]) * bw:.0f}px;top:{float(r["y"]) * bh:.0f}px;'
+                     f'width:{2 * rad:.0f}px;height:{2 * rad:.0f}px;border-color:{col};'
+                     f'box-shadow:0 0 34px {col},inset 0 0 34px {col}"></div>')
+        t = float(r.get("t", s + .3))
+        js.append(f'tl.fromTo("#sc{i}r{n}",{{xPercent:-50,yPercent:-50,opacity:0,scale:1.5}},{{xPercent:-50,yPercent:-50,'
+                  f'opacity:1,scale:1,duration:.45,ease:"back.out(2)",immediateRender:false}},{t:.3f});')
         pops.append(t)
     js.insert(0, f'tl.fromTo("#sc{i} .ac-in",{{scale:1}},{{scale:{float(sc.get("zoom", 1.06))},'
                  f'duration:{sc["_dur"]:.3f},ease:"none",immediateRender:false}},{s:.3f});')
@@ -268,6 +278,7 @@ def css(C):
 .pn-chip{{opacity:0;color:#fff;border-radius:999px;padding:8px 28px;font-weight:900;font-size:42px}}
 .ac,.ac-in{{position:absolute;inset:0;overflow:hidden}}
 .ac-chip{{position:absolute;z-index:2;opacity:0;white-space:nowrap;font-size:36px;font-weight:800;color:#fff;border-radius:999px;padding:12px 28px;box-shadow:0 8px 30px rgba(0,0,0,.45)}}
+.ac-ring{{position:absolute;z-index:2;opacity:0;border:7px solid;border-radius:50%}}
 .ac-head{{z-index:2;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8)}}
 .pvw{{position:absolute;inset:0}}
 .pv{{position:absolute;inset:0;width:100%;height:100%}}

@@ -175,9 +175,14 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   `"crop": [x, y, w, h]` in source pixels to cut away the app's menus and
   status bar (check the crop on a frame: `ffmpeg -ss FROM -i SRC -frames:v 1
   -vf crop=w:h:x:y f.jpg`). `labels` are chips on the picture: text, x and y
-  (0-1 within the scene), tone red/blue, t (absolute seconds). Use `split` to
+  (0-1 within the scene), tone red/blue, t (absolute seconds). `rings` (x, y,
+  r in px, tone, t) circle a muscle the app does not colour, such as the
+  glutes in blue. `"still": true` holds the frame at `from` when the app is
+  spinning the body too fast for a label to stay on the muscle. Use `split` to
   keep the face below while the muscle is shown, `full` for the moment the
   muscle itself is the point. Keep one clip scene to 2-5 seconds like any other.
+  Recordings already made, with their seconds and crops, are listed in
+  `.claude/instagram/anatomy.md`; reuse them before asking for a new one.
 - `"layout": "full"` (face, character): footage fills the whole frame, captions
   sit low, and cards are not used. Use it for skits, reactions and anything
   where the face is the joke. Its scene type is `hook` (text; `\n` breaks the

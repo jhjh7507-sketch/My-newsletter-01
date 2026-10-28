@@ -172,12 +172,21 @@ def main():
         if sc.get("type") == "clip":  # screen recordings (anatomy app) shown inside a graphic scene
             p = sc["src"] if os.path.isabs(sc["src"]) else os.path.join(base, sc["src"])
             # phone screen recordings are HEVC, which the render browser cannot play:
-            # re-encode to H.264, upright, silent, at the reel's frame rate
+            # re-encode the used stretch to H.264, upright, silent, at the reel's frame rate.
+            # "still": true holds the frame at `from` (the app spins the body too fast to label)
             out = os.path.join(a.out, "media", f"clip{i}.mp4")
-            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", p, "-an", "-vf", f"fps={FPS},scale=-2:'min(ih,1920)'",
+            src_in = ["-ss", f'{float(sc.get("from", 0)):.3f}', "-i", p]
+            if sc.get("still"):
+                png = os.path.join(a.out, "media", f"clip{i}.png")
+                subprocess.run(["ffmpeg", "-v", "error", "-y", *src_in, "-frames:v", "1", png], check=True)
+                src_in = ["-loop", "1", "-framerate", str(FPS), "-i", png]
+            subprocess.run(["ffmpeg", "-v", "error", "-y", *src_in, "-t", "15", "-an",
+                            "-vf", f"fps={FPS},scale=-2:'min(ih,1920)'",
                             "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
                             "-g", str(FPS), "-keyint_min", str(FPS), "-movflags", "+faststart", out], check=True)
-            sc["_media"], sc["_size"] = f"media/clip{i}.mp4", probe_size(out)
+            if sc.get("still"):
+                os.remove(png)
+            sc["_media"], sc["_size"], sc["from"] = f"media/clip{i}.mp4", probe_size(out), 0
             if sc.get("crop"):  # crop is given in the source's pixels; the copy may be scaled
                 f = sc["_size"][0] / probe_size(p)[0]
                 sc["crop"] = [v * f for v in sc["crop"]]
