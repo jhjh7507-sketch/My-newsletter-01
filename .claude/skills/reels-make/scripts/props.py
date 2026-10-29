@@ -1,16 +1,22 @@
 """Props for the "mixed" info layout: things that act out a sentence.
 
-Entrances are fromTo tweens left to render their hidden start state at once
-(each prop element has one), so nothing shows before the word it belongs to.
-
 Where pro.py draws ideas (a keyword, a comparison, a diagram), these show the
 object the speaker names, the way the reference reels do (얼굴반반3, 얼굴반반편집):
 an ID card when they introduce themselves, a clock when they say what time it
 is, a chat box typing when they say they asked an AI, the real waveform losing
 its pauses when they say the silences get cut, a progress card when they hand
-the video over. Same signature as pro.py builders: (i, sc, s, C) -> (html, js, pops).
-Numbers and times on them are real values from the footage, never invented.
+the video over; for information reels a nutrition label, the paper a number
+comes from, a calculator doing the sum, an amino-acid chain coming apart and
+a balance tipping. Same signature as pro.py builders: (i, sc, s, C) -> (html,
+js, pops). Numbers on them are real values (from the footage or the cited
+paper), never invented.
+
+Entrances are fromTo tweens left to render their hidden start state at once
+(each such element has one tween), so nothing shows before its word. Elements
+that move more than once use immediateRender:false and start visible in CSS.
 """
+import math
+
 from pro import esc, tone
 
 ICON = {
@@ -157,12 +163,190 @@ def progress(i, sc, s, C):
     return html, js, [t1]
 
 
-BUILDERS = {"idcard": idcard, "clock": clock, "prompt": prompt, "wave": wave, "progress": progress}
+def label(i, sc, s, C):
+    """A nutrition label; the row that matters gets a highlighter stroke on its word."""
+    rows, hi = sc["rows"], sc.get("highlight")
+    t_hi = float(sc.get("t", s + .8))
+    body = "".join(f'<div class="nl-row{" nl-hi" if r[0] == hi else ""}" id="sc{i}r{k}">'
+                   f'{"<i class=nl-mark id=sc%dmk></i>" % i if r[0] == hi else ""}<span>{esc(r[0])}</span><b>{esc(r[1])}</b></div>'
+                   for k, r in enumerate(rows))
+    html = (f'<div class="nl"><div class="nl-card" id="sc{i}card"><div class="nl-head"><b>{esc(sc.get("title", "영양정보"))}</b>'
+            f'<span>{esc(sc.get("per", ""))}</span></div><div class="nl-sub">{esc(sc.get("food", ""))}</div>{body}</div></div>')
+    js = [f'tl.fromTo("#sc{i}card",{{opacity:0,y:60,rotation:4}},{{opacity:1,y:0,rotation:-2,duration:.6,ease:"expo.out"}},{s:.3f});',
+          f'tl.fromTo("#sc{i}mk",{{scaleX:0}},{{scaleX:1,duration:.45,ease:"power3.inOut"}},{t_hi:.3f});']
+    return html, js, [t_hi]
+
+
+def paper(i, sc, s, C):
+    """The study a number comes from: journal, title, authors, size, and the finding highlighted."""
+    t_hi = float(sc.get("t", s + 1))
+    chips = "".join(f'<span>{esc(c)}</span>' for c in sc.get("chips", []))
+    html = (f'<div class="pp"><div class="pp-card" id="sc{i}card"><div class="pp-j">{esc(sc["journal"])}</div>'
+            f'<div class="pp-t">{esc(sc["title"])}</div><div class="pp-a">{esc(sc.get("authors", ""))}</div>'
+            f'<div class="pp-chips" id="sc{i}ch">{chips}</div>'
+            f'<div class="pp-find" id="sc{i}fd"><i class="pp-mark" id="sc{i}mk"></i><b>{esc(sc["finding"])}</b>'
+            f'<small>{esc(sc.get("note", ""))}</small></div><div class="pp-doi">{esc(sc.get("doi", ""))}</div></div></div>')
+    js = [f'tl.fromTo("#sc{i}card",{{opacity:0,y:60,rotation:-3}},{{opacity:1,y:0,rotation:0,duration:.6,ease:"expo.out"}},{s:.3f});',
+          _in(f"#sc{i}ch", s + .5), _in(f"#sc{i}fd", t_hi - .35),
+          f'tl.fromTo("#sc{i}mk",{{scaleX:0}},{{scaleX:1,duration:.5,ease:"power3.inOut"}},{t_hi:.3f});']
+    return html, js, [t_hi]
+
+
+def calc(i, sc, s, C):
+    """A calculator: the keys of the sum light up in turn, then = shows the answer."""
+    keys = [["C", "±", "%", "÷"], ["7", "8", "9", "×"], ["4", "5", "6", "−"], ["1", "2", "3", "+"], ["0", ".", "="]]
+    press, t0, gap = list(sc["keys"]), float(sc.get("t", s + .5)), float(sc.get("gap", .17))
+    t_eq = float(sc.get("t_eq", t0 + len(press) * gap + .3))
+    pad, kid = [], {}
+    for row in keys:
+        for k in row:
+            kid[k] = f"sc{i}k{len(kid)}"
+            cls = "op" if k in "÷×−+=" else ("fn" if k in "C±%" else "")
+            pad.append(f'<b id="{kid[k]}" class="{cls}{" zero" if k == "0" else ""}">{k}</b>')
+    expr = "".join(f'<span id="sc{i}e{n}">{esc(c)}</span>' for n, c in enumerate(press))
+    html = (f'<div class="cc"><div class="cc-body" id="sc{i}card"><div class="cc-disp"><div class="cc-expr">{expr}</div>'
+            f'<div class="cc-res" id="sc{i}res">{esc(sc["result"])}</div></div><div class="cc-pad">{"".join(pad)}</div></div>'
+            f'<div class="cc-chip" id="sc{i}chip">{esc(sc.get("chip", ""))}</div>'
+            f'<div class="cc-note" id="sc{i}note">{esc(sc.get("note", ""))}</div></div>')
+    js = [f'tl.fromTo("#sc{i}card",{{opacity:0,y:60,scale:.96}},{{opacity:1,y:0,scale:1,duration:.55,ease:"expo.out"}},{s:.3f});']
+    hit = lambda k, t: (f'tl.fromTo("#{kid[k]}",{{scale:.86,filter:"brightness(1.9)"}},{{scale:1,filter:"brightness(1)",'
+                        f'duration:.3,ease:"power2.out",immediateRender:false}},{t:.3f});')
+    for n, k in enumerate(press):
+        t = t0 + n * gap
+        js += [hit(k, t), f'tl.set("#sc{i}e{n}",{{display:"inline"}},{t:.3f});']
+    js += [hit("=", t_eq), f'tl.fromTo("#sc{i}res",{{opacity:0,y:20}},{{opacity:1,y:0,duration:.35,ease:"back.out(2)"}},{t_eq:.3f});',
+           f'tl.fromTo("#sc{i}chip",{{opacity:0,scale:.7}},{{opacity:1,scale:1,duration:.4,ease:"back.out(3)"}},{t_eq + .45:.3f});',
+           _in(f"#sc{i}note", t_eq + .7)]
+    return html, js, [t_eq, t_eq + .45]
+
+
+def amino(i, sc, s, C):
+    """A protein as a chain of amino acids. mode split: the bonds break and the beads drift apart.
+    mode join: loose beads line up into a new chain inside a muscle fibre."""
+    cols = [C["accent"], C["accent2"], C["caption_accent"], "#3ddc97", "#b18cff"]
+    n = 10
+    chain = [(110 + k * 87, 300 + 70 * math.sin(k * .9)) for k in range(n)]
+    loose = [(x + ((k * 37) % 9 - 4) * 24, y + ((k * 53) % 11 - 5) * 30) for k, (x, y) in enumerate(chain)]
+    line = [(160 + k * 76, 300) for k in range(n)]
+    mode = sc.get("mode", "split")
+    start = chain if mode == "split" else loose
+    end = loose if mode == "split" else line
+    t1 = float(sc.get("t", s + 1))
+    bonds = "".join(f'<line class="am-b" id="sc{i}b{k}" x1="{start[k][0]:.0f}" y1="{start[k][1]:.0f}" '
+                    f'x2="{start[k + 1][0]:.0f}" y2="{start[k + 1][1]:.0f}"/>' for k in range(n - 1)) if mode == "split" else ""
+    newb = "".join(f'<line class="am-nb" id="sc{i}nb{k}" x1="{line[k][0]}" y1="300" x2="{line[k + 1][0]}" y2="300"/>'
+                   for k in range(n - 1)) if mode == "join" else ""
+    fibre = ('<rect class="am-fib" id="sc{0}fib" x="110" y="215" width="780" height="170" rx="85"/>'
+             + "".join(f'<line class="am-str" x1="{150 + k * 60}" y1="225" x2="{150 + k * 60}" y2="375"/>' for k in range(12))).format(i) if mode == "join" else ""
+    beads = "".join(f'<g class="am-g" id="sc{i}g{k}" transform="translate({start[k][0]:.0f} {start[k][1]:.0f})">'
+                    f'<circle r="32" fill="{cols[k % len(cols)]}"/><circle r="32" fill="url(#sc{i}sh)"/></g>' for k in range(n))
+    svg = (f'<svg class="am-svg" viewBox="0 0 1000 600"><defs><radialGradient id="sc{i}sh" cx="35%" cy="30%" r="70%">'
+           f'<stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>'
+           f'{fibre}{bonds}{newb}{beads}</svg>')
+    html = (f'<div class="am"><div class="am-head" id="sc{i}hd">{esc(sc.get("title", ""))}</div>{svg}'
+            f'<div class="am-chip" id="sc{i}chip" style="background:{tone(C, sc.get("tone", "blue"))}">{esc(sc.get("label", ""))}</div></div>')
+    js = [_in(f"#sc{i}hd", s)]
+    if mode == "split":
+        js.append(f'tl.fromTo("#sc{i} .am-g",{{opacity:0,scale:.4}},{{opacity:1,scale:1,duration:.4,stagger:.05,ease:"back.out(2)"}},{s + .1:.3f});')
+        js.append(f'tl.fromTo("#sc{i} .am-b",{{opacity:0}},{{opacity:1,duration:.3,stagger:.05}},{s + .3:.3f});')
+        for k in range(n - 1):
+            js.append(f'tl.to("#sc{i}b{k}",{{opacity:0,duration:.15,immediateRender:false}},{t1 + k * .06:.3f});')
+    for k in range(n):
+        (x0, y0), (x1, y1) = start[k], end[k]
+        js.append(f'tl.fromTo("#sc{i}g{k}",{{x:{x0:.0f},y:{y0:.0f}}},{{x:{x1:.0f},y:{y1:.0f},duration:.8,ease:"power3.inOut",'
+                  f'immediateRender:false}},{t1 + (k * .04 if mode == "split" else k * .05):.3f});')
+    if mode == "join":
+        js.append(f'tl.fromTo("#sc{i} .am-nb",{{opacity:0}},{{opacity:1,duration:.25,stagger:.05}},{t1 + .7:.3f});')
+        js.append(f'tl.fromTo("#sc{i}fib, #sc{i} .am-str",{{opacity:0}},{{opacity:1,duration:.5}},{t1 + 1.0:.3f});')
+    t_lab = float(sc.get("t_label", t1 + .9))
+    js.append(f'tl.fromTo("#sc{i}chip",{{opacity:0,scale:.7}},{{opacity:1,scale:1,duration:.4,ease:"back.out(3)"}},{t_lab:.3f});')
+    return html, js, [t1, t_lab]
+
+
+def scale(i, sc, s, C):
+    """A balance: synthesis on the left pan, breakdown on the right. First it tips to breakdown
+    (training on an empty stomach), then protein drops onto synthesis and it tips the other way."""
+    yel, red = C["caption_accent"], C["accent"]
+    ta, tb, tc = (float(sc[k]) for k in ("t_tip", "t_drop", "t_win"))
+    th = 12
+    dy = 330 * math.sin(math.radians(th))
+    pan = lambda side, x, col, txt: (f'<g id="sc{i}{side}"><line x1="{x}" y1="240" x2="{x - 90}" y2="470" class="sb-str"/>'
+                                     f'<line x1="{x}" y1="240" x2="{x + 90}" y2="470" class="sb-str"/>'
+                                     f'<path d="M{x - 130} 470 Q{x} 540 {x + 130} 470 Z" fill="{col}" fill-opacity=".9"/>'
+                                     f'<text x="{x}" y="455" class="sb-pt">{esc(txt)}</text></g>')
+    svg = (f'<svg class="sb-svg" viewBox="0 0 1000 820"><path d="M500 250 L430 760 L570 760 Z" class="sb-stand"/>'
+           f'<rect x="360" y="750" width="280" height="26" rx="13" class="sb-stand"/>'
+           f'<g id="sc{i}beam"><rect x="160" y="228" width="680" height="24" rx="12" class="sb-beam"/></g>'
+           f'<circle cx="500" cy="240" r="26" class="sb-piv"/>'
+           f'{pan("L", 170, yel, sc.get("left", "합성"))}{pan("R", 830, red, sc.get("right", "분해"))}'
+           f'<g id="sc{i}blk"><rect x="105" y="330" width="130" height="90" rx="18" fill="#fff"/>'
+           f'<text x="170" y="388" class="sb-bt">{esc(sc.get("weight", "단백질"))}</text></g></svg>')
+    html = (f'<div class="sb"><div class="sb-head" id="sc{i}hd">{esc(sc.get("title", ""))}</div>'
+            f'<div class="sb-tags"><span id="sc{i}ta">{esc(sc.get("tag_a", ""))}</span>'
+            f'<span id="sc{i}tb" class="sb-tagb">{esc(sc.get("tag_b", ""))}</span></div>{svg}'
+            f'<div class="sb-chip" id="sc{i}chip" style="background:{yel}">{esc(sc.get("chip", ""))}</div>'
+            f'<div class="sb-note" id="sc{i}note">{esc(sc.get("note", ""))}</div></div>')
+    tip = lambda t, deg, ly, ry: [
+        f'tl.to("#sc{i}beam",{{rotation:{deg},svgOrigin:"500 240",duration:.7,ease:"power2.inOut",immediateRender:false}},{t:.3f});',
+        f'tl.to("#sc{i}L",{{y:{ly:.0f},duration:.7,ease:"power2.inOut",immediateRender:false}},{t:.3f});',
+        f'tl.to("#sc{i}R",{{y:{ry:.0f},duration:.7,ease:"power2.inOut",immediateRender:false}},{t:.3f});']
+    js = [_in(f"#sc{i}hd", s), f'tl.fromTo("#sc{i} .sb-svg",{{opacity:0,y:40}},{{opacity:1,y:0,duration:.5,ease:"expo.out"}},{s + .1:.3f});',
+          _in(f"#sc{i}ta", ta - .2)] + tip(ta, th, -dy, dy) + [
+          f'tl.to("#sc{i}ta",{{opacity:0,y:-20,duration:.3,immediateRender:false}},{tb - .1:.3f});',
+          _in(f"#sc{i}tb", tb - .1),
+          f'tl.fromTo("#sc{i}blk",{{opacity:0,y:-260}},{{opacity:1,y:{-dy + 70:.0f},duration:.5,ease:"power2.in"}},{tb:.3f});'] + [
+          f'tl.to("#sc{i}blk",{{y:{dy + 70:.0f},duration:.7,ease:"power2.inOut",immediateRender:false}},{tb + .5:.3f});'] + tip(tb + .5, -th, dy, -dy) + [
+          f'tl.fromTo("#sc{i}chip",{{opacity:0,scale:.7}},{{opacity:1,scale:1,duration:.4,ease:"back.out(3)"}},{tc:.3f});',
+          _in(f"#sc{i}note", tc + .3)]
+    return html, js, [ta, tb + .5, tc]
+
+
+BUILDERS = {"idcard": idcard, "clock": clock, "prompt": prompt, "wave": wave, "progress": progress,
+            "label": label, "paper": paper, "calc": calc, "amino": amino, "scale": scale}
 
 
 def css(C):
     return f"""
-.id,.ck,.pm,.wv,.pg{{width:100%;display:flex;flex-direction:column;align-items:center}}
+.nl-card{{width:720px;background:#fbfbf7;color:#111;border-radius:22px;padding:34px 38px 26px;box-shadow:0 30px 80px rgba(0,0,0,.6)}}
+.nl-head{{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:10px solid #111;padding-bottom:12px}}
+.nl-head b{{font-size:58px;font-weight:900;letter-spacing:-.02em}}.nl-head span{{font-size:30px;font-weight:700;color:#444}}
+.nl-sub{{font-size:30px;font-weight:700;color:#555;margin:14px 0 6px}}
+.nl-row{{position:relative;display:flex;justify-content:space-between;align-items:center;font-size:44px;font-weight:800;padding:16px 6px;border-top:3px solid #111}}
+.nl-row span,.nl-row b{{position:relative}}.nl-row b{{font-weight:900}}
+.nl-mark{{position:absolute;left:-10px;right:-10px;top:10%;bottom:10%;background:{C['caption_accent']};opacity:.85;border-radius:8px;transform-origin:left center}}
+.pp-card{{width:930px;border-radius:30px;padding:36px 40px 30px;background:#f4f1ea;color:#1b1b1b;box-shadow:0 30px 80px rgba(0,0,0,.6)}}
+.pp-j{{font-size:26px;font-weight:800;letter-spacing:.06em;color:#8a1c1c;text-transform:uppercase}}
+.pp-t{{margin-top:14px;font-family:Georgia,'Times New Roman',serif;font-size:33px;line-height:1.28;font-weight:700}}
+.pp-a{{margin-top:12px;font-size:25px;color:#555;font-style:italic}}
+.pp-chips{{display:flex;gap:12px;margin-top:20px}}.pp-chips span{{font-size:27px;font-weight:800;color:#fff;background:#1b1b1b;padding:7px 18px;border-radius:999px}}
+.pp-find{{position:relative;margin-top:24px;padding:18px 20px;border-left:8px solid #8a1c1c;background:rgba(0,0,0,.04)}}
+.pp-find b{{position:relative;display:block;font-size:40px;font-weight:900;color:#111}}.pp-find small{{position:relative;display:block;margin-top:6px;font-size:28px;font-weight:700;color:#444}}
+.pp-mark{{position:absolute;left:14px;right:14px;top:14px;height:56px;background:{C['caption_accent']};opacity:.8;transform-origin:left center}}
+.pp-doi{{margin-top:14px;font-size:22px;color:#777}}
+.cc{{width:100%;display:flex;flex-direction:column;align-items:center}}
+.cc-body{{width:640px;border-radius:56px;padding:40px 36px 36px;background:#0e1016;border:2px solid rgba(255,255,255,.08);box-shadow:0 30px 90px rgba(0,0,0,.7)}}
+.cc-disp{{text-align:right;padding:10px 14px 26px}}
+.cc-expr{{min-height:72px;font-size:64px;font-weight:700;color:{C['muted']};font-variant-numeric:tabular-nums}}.cc-expr span{{display:none}}
+.cc-res{{font-size:130px;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}}
+.cc-pad{{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}}
+.cc-pad b{{height:100px;border-radius:50px;background:#2a2f3a;color:#fff;font-size:52px;font-weight:600;display:flex;align-items:center;justify-content:center}}
+.cc-pad b.fn{{background:#a5a5a5;color:#111}}.cc-pad b.op{{background:{C['accent2']}}}.cc-pad b.zero{{grid-column:span 2}}
+.cc-chip{{margin-top:38px;font-size:46px;font-weight:900;color:#fff;background:{C['accent']};padding:12px 34px;border-radius:999px}}
+.cc-note{{margin-top:16px;font-size:34px;font-weight:700;color:{C['muted']}}}
+.am-head{{font-size:42px;font-weight:800;color:{C['muted']};margin-bottom:10px}}
+.am-svg{{width:1000px;height:600px;overflow:visible}}
+.am-b{{stroke:rgba(244,246,250,.75);stroke-width:8;stroke-linecap:round}}.am-nb{{stroke:#3ddc97;stroke-width:9;stroke-linecap:round}}
+.am-fib{{fill:rgba(255,77,94,.12);stroke:{C['accent']};stroke-width:4}}.am-str{{stroke:rgba(255,77,94,.25);stroke-width:3}}
+.am-chip{{margin-top:6px;font-size:44px;font-weight:900;color:#fff;padding:10px 32px;border-radius:999px}}
+.sb-head{{font-size:44px;font-weight:800;color:{C['muted']}}}
+.sb-tags{{position:relative;height:84px;width:900px;margin-top:14px}}
+.sb-tags span{{position:absolute;left:0;right:0;text-align:center;font-size:62px;font-weight:900;color:#fff}}
+.sb-svg{{width:860px;height:705px;overflow:visible}}
+.sb-stand{{fill:#2a2f3a}}.sb-beam{{fill:#e9ecf2}}.sb-piv{{fill:{C['accent2']}}}.sb-str{{stroke:rgba(233,236,242,.7);stroke-width:4}}
+.sb-pt{{font-size:46px;font-weight:900;fill:#111;text-anchor:middle}}.sb-bt{{font-size:38px;font-weight:900;fill:#111;text-anchor:middle}}
+.sb-chip{{margin-top:6px;font-size:46px;font-weight:900;color:#111;padding:10px 34px;border-radius:999px}}
+.sb-note{{margin-top:16px;font-size:28px;font-weight:600;color:{C['muted']}}}
+.id,.ck,.pm,.wv,.pg,.nl,.pp,.am,.sb{{width:100%;display:flex;flex-direction:column;align-items:center}}
 .id-card{{width:960px;border-radius:44px;padding:40px 46px 34px;background:linear-gradient(160deg,{C['panel']},#0b0e15);border:2px solid rgba(255,255,255,.09);box-shadow:0 30px 80px rgba(0,0,0,.55)}}
 .id-top{{display:flex;justify-content:space-between;align-items:center;font-size:32px;font-weight:800;letter-spacing:.18em;color:{C['muted']}}}
 .id-top b{{font-size:22px;letter-spacing:.2em;color:#fff;background:rgba(255,255,255,.1);padding:6px 16px;border-radius:999px}}
