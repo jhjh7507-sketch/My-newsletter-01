@@ -18,6 +18,9 @@ import yaml
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pro  # noqa: E402
+import props  # noqa: E402
+
+BUILDERS = {**pro.BUILDERS, **props.BUILDERS}
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PUNCT = re.compile(r"[.,!?…~]$")
@@ -169,6 +172,11 @@ def main():
 
     scenes = plan.get("scenes", [])
     for i, sc in enumerate(scenes):
+        if sc.get("image"):  # a still a prop shows (the speaker's photo on an ID card)
+            p = sc["image"] if os.path.isabs(sc["image"]) else os.path.join(base, sc["image"])
+            name = f"img{i}{os.path.splitext(p)[1]}"
+            shutil.copy(p, os.path.join(a.out, "media", name))
+            sc["_image"] = "media/" + name
         if sc.get("type") == "clip":  # screen recordings (anatomy app) shown inside a graphic scene
             p = sc["src"] if os.path.isabs(sc["src"]) else os.path.join(base, sc["src"])
             # phone screen recordings are HEVC, which the render browser cannot play:
@@ -239,6 +247,26 @@ def main():
             if lay == "face":
                 js.append(f'tl.fromTo("#ft",{{scale:1}},{{scale:{M["face_push_scale"]},'
                           f'duration:{T if prev == "split" else push:.3f},ease:"power2.out",immediateRender:false}},{s:.3f});')
+            if lay == "face" and sc.get("card"):
+                # the footage itself shrinks into a framed card ("테스트 영상으로 찍고 있는 중")
+                k, card = 0.8, sc["card"]
+                cx, cy, cw, ch = W * (1 - k) / 2, H * (1 - k) / 2, W * k, H * k
+                js.append(f'tl.fromTo("#ftw",{{scale:1,borderRadius:0}},{{scale:{k},borderRadius:{44 / k:.0f},duration:.6,'
+                          f'ease:"power3.inOut",immediateRender:false}},{s + .15:.3f});'
+                          f'tl.fromTo("#ftw",{{scale:{k},borderRadius:{44 / k:.0f}}},{{scale:1,borderRadius:0,duration:{T},'
+                          f'ease:"{LE}",immediateRender:false}},{e:.3f});')
+                red = C["accent"]
+                tc = "".join(f'<span id="sc{i}tc{n}">00:{n:02d}</span>' for n in range(int(e - s) + 2))
+                clips.append(f'<div class="clip fc" id="sc{i}fc" style="z-index:{10 + i}" data-start="{s:.3f}" '
+                             f'data-duration="{e - s:.3f}" data-track-index="{1 + i % 2}">'
+                             f'<div class="fc-frame" style="left:{cx:.0f}px;top:{cy:.0f}px;width:{cw:.0f}px;height:{ch:.0f}px">'
+                             f'<div class="fc-rec"><i style="background:{red}"></i>REC</div>'
+                             f'<div class="fc-label">{esc(card.get("label", ""))}</div><div class="fc-tc">{tc}</div></div></div>')
+                js.append(f'tl.fromTo("#sc{i}fc .fc-frame",{{opacity:0}},{{opacity:1,duration:.3,immediateRender:false}},{s + .6:.3f});'
+                          f'tl.fromTo("#sc{i}fc .fc-rec i",{{opacity:1}},{{opacity:.2,duration:.45,repeat:{int((e - s) / .45)},'
+                          f'yoyo:true,ease:"none",immediateRender:false}},{s + .6:.3f});')
+                js += [f'tl.set("#sc{i}tc{n}",{{opacity:1}},{s + .6 + n:.3f});' + (f'tl.set("#sc{i}tc{n - 1}",{{opacity:0}},{s + .6 + n:.3f});' if n else "")
+                       for n in range(int(e - s) + 2) if s + .6 + n < e]
             elif lay == "split" and prev == "face":
                 js.append(f'tl.fromTo("#ft",{{scale:{M["face_push_scale"]}}},{{scale:1,duration:{T},ease:"{LE}",'
                           f'immediateRender:false}},{s:.3f});')
@@ -264,9 +292,9 @@ def main():
             elif lay == "full" and nxt in ("face", "split"):
                 tj.append(f'tl.fromTo({el},{{clipPath:{inset(0)}}},{{clipPath:{inset(100 if nxt == "face" else 50)},'
                           f'duration:{T},ease:"{LE}",{IR}}},{e:.3f});')
-        if sc.get("type") in pro.BUILDERS:
+        if sc.get("type") in BUILDERS:
             sc["_box"], sc["_dur"], sc["_track"] = (W, H if lay == "full" else sy), dur, 8 + i % 2
-            inner, pjs, pops = pro.BUILDERS[sc["type"]](i, sc, s, C)
+            inner, pjs, pops = BUILDERS[sc["type"]](i, sc, s, C)
             glow = pro.tone(C, sc.get("glow", "red"))
             bg = f'background:radial-gradient(110% 70% at 50% 38%,{glow}2e 0%,transparent 60%),{C["bg"]}'
             if sc["type"] == "clip":  # app recordings sit on pure black; letterboxing must not show
@@ -381,7 +409,14 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{C['bg']}}}
 .lay-split{{height:{sy}px!important;padding:0 60px}}.lay-full{{height:{H}px!important;padding:0 60px}}
 .lay-face{{height:{sy}px!important}}
 .cap.low{{top:{CAP.get("y_low", 1560)}px}}
-""" + (pro.css(C) if mixed else "") + (
+.fc{{z-index:3;pointer-events:none}}
+.fc-frame{{position:absolute;border-radius:44px;box-shadow:0 0 0 3px rgba(255,255,255,.22)}}
+.fc-rec{{position:absolute;left:36px;top:34px;display:flex;align-items:center;gap:12px;font-size:34px;font-weight:900;color:#fff;letter-spacing:.08em;text-shadow:0 2px 10px rgba(0,0,0,.6)}}
+.fc-rec i{{width:22px;height:22px;border-radius:50%}}
+.fc-label{{position:absolute;right:36px;top:30px;font-size:30px;font-weight:900;letter-spacing:.14em;color:#fff;background:rgba(0,0,0,.45);padding:8px 18px;border-radius:12px}}
+.fc-tc{{position:absolute;left:36px;bottom:34px;font-size:32px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 2px 10px rgba(0,0,0,.6)}}
+.fc-tc span{{position:absolute;left:0;bottom:0;opacity:0}}
+""" + (pro.css(C) + props.css(C) if mixed else "") + (
         ".cap span{background:none!important;padding:0!important;-webkit-text-stroke:9px rgba(0,0,0,.9);"
         "paint-order:stroke fill;text-shadow:0 6px 20px rgba(0,0,0,.45)}" if CAP.get("stroke") else "")
 

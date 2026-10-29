@@ -166,6 +166,19 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   flexor tight in red). `glow` red/blue tints the background. Red means tight
   or painful, blue means stretched or weak. Never write a sentence into a
   graphic; the caption already says it.
+- Props (props.py) show the thing a sentence names instead of its words:
+  `idcard` (image, org, name, role, place, badge, handle, t_name, t_place,
+  t_badge: a staff card with the speaker's photo cut from the footage),
+  `clock` (date, time, state, route: the real recording time from the file's
+  `creationdate` tag), `prompt` (app, attach, text, t, cps: a chat box that
+  types the request and sends), `wave` (title, bars, keep, t_scan, t_close,
+  from_label, to_label: the speaker's waveform; build bars from the raw audio
+  and keep from cut.py's `segments.json`, so the pauses that turn red and close
+  up are the ones really cut), `progress` (file, meta, working, done, t, run).
+  A face scene with `"card": {"label": "TEST"}` shrinks the footage into a
+  framed card with REC and a running timecode. Pick a prop when the sentence
+  names an object, a time, an app or an action on the video; keep `keyword` for
+  a term to remember. Values on props are real, never invented.
 - Layout changes in `mixed` move instead of cutting (style.yaml
   `motion.layout_dur`, 0.45 s): face to split slides the panel down from the
   top while the face slides into the lower half, split to face reverses it,

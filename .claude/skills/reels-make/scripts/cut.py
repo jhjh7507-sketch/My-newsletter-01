@@ -20,6 +20,12 @@ import sys
 import tempfile
 
 
+def probe_duration(path):
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
+                       capture_output=True, text=True, check=True)
+    return float(r.stdout.strip())
+
+
 def probe_fps(path):
     r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
                         "stream=avg_frame_rate,r_frame_rate", "-of", "csv=p=0", path],
@@ -154,6 +160,10 @@ def main():
 
     with open(os.path.join(a.out, "words_cut.json"), "w", encoding="utf-8") as f:
         json.dump(remapped, f, ensure_ascii=False, indent=1)
+    # which source seconds were kept, for graphics that show the cut itself (a waveform losing its pauses)
+    with open(os.path.join(a.out, "segments.json"), "w") as f:
+        json.dump({"source": round(probe_duration(a.video), 3),
+                   "kept": [[round(s, 3), round(e, 3)] for s, e in segs]}, f)
     src = words[-1]["end"]
     print(f"cut.mp4: {src:.1f}s -> {t:.1f}s, {len(segs)} segments, {len(drop)} words dropped",
           file=sys.stderr)
