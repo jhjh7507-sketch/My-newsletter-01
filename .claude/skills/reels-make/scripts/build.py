@@ -410,7 +410,7 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{C['bg']}}}
 .lay-face{{height:{sy}px!important}}
 .cap.low{{top:{CAP.get("y_low", 1560)}px}}
 .fc{{z-index:3;pointer-events:none}}
-.fc-frame{{position:absolute;border-radius:44px;box-shadow:0 0 0 3px rgba(255,255,255,.22)}}
+.fc-frame{{position:absolute;opacity:0;border-radius:44px;box-shadow:0 0 0 3px rgba(255,255,255,.22)}}
 .fc-rec{{position:absolute;left:36px;top:34px;display:flex;align-items:center;gap:12px;font-size:34px;font-weight:900;color:#fff;letter-spacing:.08em;text-shadow:0 2px 10px rgba(0,0,0,.6)}}
 .fc-rec i{{width:22px;height:22px;border-radius:50%}}
 .fc-label{{position:absolute;right:36px;top:30px;font-size:30px;font-weight:900;letter-spacing:.14em;color:#fff;background:rgba(0,0,0,.45);padding:8px 18px;border-radius:12px}}

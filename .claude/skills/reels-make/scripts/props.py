@@ -1,5 +1,8 @@
 """Props for the "mixed" info layout: things that act out a sentence.
 
+Entrances are fromTo tweens left to render their hidden start state at once
+(each prop element has one), so nothing shows before the word it belongs to.
+
 Where pro.py draws ideas (a keyword, a comparison, a diagram), these show the
 object the speaker names, the way the reference reels do (얼굴반반3, 얼굴반반편집):
 an ID card when they introduce themselves, a clock when they say what time it
@@ -22,8 +25,7 @@ ICON = {
 
 
 def _in(sel, t, y=24, d=.4, extra=""):
-    return (f'tl.fromTo("{sel}",{{opacity:0,y:{y}}},{{opacity:1,y:0,duration:{d},ease:"expo.out",'
-            f'immediateRender:false{extra}}},{t:.3f});')
+    return (f'tl.fromTo("{sel}",{{opacity:0,y:{y}}},{{opacity:1,y:0,duration:{d},ease:"expo.out"{extra}}},{t:.3f});')
 
 
 def _ticker(i, name, vals, t, rate=30):
@@ -45,11 +47,11 @@ def idcard(i, sc, s, C):
             f'<div class="id-place" id="sc{i}pl"><span class="id-bar" id="sc{i}plb"></span><span>{esc(sc.get("place", ""))}</span></div>'
             f'<div class="id-badge" id="sc{i}bd">{esc(sc.get("badge", ""))}</div></div></div>'
             f'<div class="id-foot">{esc(sc.get("handle", ""))}</div></div></div>')
-    js = [f'tl.fromTo("#sc{i}card",{{opacity:0,y:70,rotation:-5}},{{opacity:1,y:0,rotation:0,duration:.6,ease:"expo.out",immediateRender:false}},{s:.3f});',
+    js = [f'tl.fromTo("#sc{i}card",{{opacity:0,y:70,rotation:-5}},{{opacity:1,y:0,rotation:0,duration:.6,ease:"expo.out"}},{s:.3f});',
           _in(f"#sc{i}nm", t_name), _in(f"#sc{i}rl", t_name + .15),
           _in(f"#sc{i}pl", t_place),
-          f'tl.fromTo("#sc{i}plb",{{scaleX:0}},{{scaleX:1,duration:.5,ease:"power3.inOut",immediateRender:false}},{t_place + .15:.3f});',
-          f'tl.fromTo("#sc{i}bd",{{opacity:0,scale:.5}},{{opacity:1,scale:1,duration:.45,ease:"back.out(3)",immediateRender:false}},{t_badge:.3f});']
+          f'tl.fromTo("#sc{i}plb",{{scaleX:0}},{{scaleX:1,duration:.5,ease:"power3.inOut"}},{t_place + .15:.3f});',
+          f'tl.fromTo("#sc{i}bd",{{opacity:0,scale:.5}},{{opacity:1,scale:1,duration:.45,ease:"back.out(3)"}},{t_badge:.3f});']
     return html, js, [t_badge]
 
 
@@ -65,12 +67,12 @@ def clock(i, sc, s, C):
             f'<div class="ck-time" id="sc{i}tm">{hh}<span class="ck-colon" id="sc{i}cl">:</span>{mm}</div>'
             f'<div class="ck-state" id="sc{i}st"><span class="ck-ic">{ICON["moon"]}</span>{esc(sc.get("state", ""))}</div>{route}</div>')
     dur = float(sc.get("_dur", 2))
-    js = [_in(f"#sc{i}dt", s), f'tl.fromTo("#sc{i}tm",{{opacity:0,scale:.92}},{{opacity:1,scale:1,duration:.5,ease:"expo.out",immediateRender:false}},{s + .05:.3f});',
+    js = [_in(f"#sc{i}dt", s), f'tl.fromTo("#sc{i}tm",{{opacity:0,scale:.92}},{{opacity:1,scale:1,duration:.5,ease:"expo.out"}},{s + .05:.3f});',
           _in(f"#sc{i}st", s + .3),
-          f'tl.fromTo("#sc{i}cl",{{opacity:1}},{{opacity:.15,duration:.5,repeat:{max(1, int(dur / .5))},yoyo:true,ease:"none",immediateRender:false}},{s + .5:.3f});']
+          f'tl.fromTo("#sc{i}cl",{{opacity:1}},{{opacity:.15,duration:.5,repeat:{max(1, int(dur / .5))},yoyo:true,ease:"none"}},{s + .5:.3f});']
     if route:
         js += [_in(f"#sc{i} .ck-route", s + .45),
-               f'tl.fromTo("#sc{i}dot",{{left:"0%"}},{{left:"62%",duration:{max(.8, dur - .6):.2f},ease:"power1.inOut",immediateRender:false}},{s + .5:.3f});']
+               f'tl.fromTo("#sc{i}dot",{{left:"0%"}},{{left:"62%",duration:{max(.8, dur - .6):.2f},ease:"power1.inOut"}},{s + .5:.3f});']
     return html, js, [s + .3]
 
 
@@ -84,14 +86,14 @@ def prompt(i, sc, s, C):
     html = (f'<div class="pm"><div class="pm-win" id="sc{i}win"><div class="pm-head"><span class="pm-logo">{ICON["spark"]}</span>'
             f'{esc(sc.get("app", "AI"))}</div>{att}<div class="pm-input"><div class="pm-txt">{chars}'
             f'<i class="pm-caret" id="sc{i}cr"></i></div><b class="pm-send" id="sc{i}sd">{ICON["up"]}</b></div></div></div>')
-    js = [f'tl.fromTo("#sc{i}win",{{opacity:0,y:50,scale:.96}},{{opacity:1,y:0,scale:1,duration:.5,ease:"expo.out",immediateRender:false}},{s:.3f});']
+    js = [f'tl.fromTo("#sc{i}win",{{opacity:0,y:50,scale:.96}},{{opacity:1,y:0,scale:1,duration:.5,ease:"expo.out"}},{s:.3f});']
     if att:
         js.append(_in(f"#sc{i}att", s + .25, 14))
     js += [f'tl.set("#sc{i}c{k}",{{display:"inline"}},{t0 + k / rate:.3f});' for k in range(len(text))]
     t_send = t0 + len(text) / rate + .15
-    js += [f'tl.fromTo("#sc{i}cr",{{opacity:1}},{{opacity:0,duration:.4,repeat:{max(1, int((t_send - s) / .4))},yoyo:true,ease:"none",immediateRender:false}},{s:.3f});',
+    js += [f'tl.fromTo("#sc{i}cr",{{opacity:1}},{{opacity:0,duration:.4,repeat:{max(1, int((t_send - s) / .4))},yoyo:true,ease:"none"}},{s:.3f});',
            f'tl.fromTo("#sc{i}sd",{{background:"rgba(255,255,255,.12)",scale:1}},{{background:"{tone(C, sc.get("tone", "red"))}",scale:1.12,'
-           f'duration:.2,yoyo:true,repeat:1,immediateRender:false}},{t_send:.3f});']
+           f'duration:.2,yoyo:true,repeat:1}},{t_send:.3f});']
     return html, js, [t_send]
 
 
@@ -125,11 +127,12 @@ def wave(i, sc, s, C):
             f'<div class="wv-row" id="sc{i}row">{"".join(parts)}<b class="wv-head-line" id="sc{i}ph"></b></div>'
             f'<div class="wv-foot"><span id="sc{i}a">{esc(sc.get("from_label", ""))}</span>'
             f'<b class="wv-chip" id="sc{i}b" style="background:{red}">{esc(sc.get("to_label", ""))}</b></div></div>')
-    js = [_in(f"#sc{i}hd", s), f'tl.fromTo("#sc{i}row",{{opacity:0}},{{opacity:1,duration:.35,immediateRender:false}},{s + .1:.3f});',
+    js = [_in(f"#sc{i}hd", s), f'tl.fromTo("#sc{i}row",{{opacity:0}},{{opacity:1,duration:.35}},{s + .1:.3f});',
           _in(f"#sc{i}a", s + .2),
-          f'tl.fromTo("#sc{i}ph",{{left:"0%",opacity:1}},{{left:"100%",opacity:1,duration:1.0,ease:"none",immediateRender:false}},{t_scan:.3f});',
+          f'tl.fromTo("#sc{i}ph",{{left:"0%",opacity:1}},{{left:"100%",opacity:1,duration:1.0,ease:"none",'
+          f'immediateRender:false}},{t_scan:.3f});',  # two tweens on the playhead: CSS keeps it hidden until the scan
           f'tl.to("#sc{i}ph",{{opacity:0,duration:.2,immediateRender:false}},{t_scan + 1.0:.3f});'] + js + [
-          f'tl.fromTo("#sc{i}b",{{opacity:0,scale:.6}},{{opacity:1,scale:1,duration:.4,ease:"back.out(3)",immediateRender:false}},{t_close + .7:.3f});']
+          f'tl.fromTo("#sc{i}b",{{opacity:0,scale:.6}},{{opacity:1,scale:1,duration:.4,ease:"back.out(3)"}},{t_close + .7:.3f});']
     return html, js, [t_scan, t_close + .7]
 
 
@@ -147,10 +150,10 @@ def progress(i, sc, s, C):
             f'<span id="sc{i}s2" class="pg-ok" style="color:{blue}"><span class="pg-ck">{ICON["check"]}</span>{esc(sc.get("done", "완료"))}</span></span>'
             f'<span class="pg-pct">{spans}</span></div></div></div>')
     t1 = t0 + dur
-    js = [f'tl.fromTo("#sc{i}card",{{opacity:0,y:50}},{{opacity:1,y:0,duration:.5,ease:"expo.out",immediateRender:false}},{s:.3f});',
-          f'tl.fromTo("#sc{i}bar",{{width:"0%"}},{{width:"100%",duration:{dur},ease:"power2.out",immediateRender:false}},{t0:.3f});',
+    js = [f'tl.fromTo("#sc{i}card",{{opacity:0,y:50}},{{opacity:1,y:0,duration:.5,ease:"expo.out"}},{s:.3f});',
+          f'tl.fromTo("#sc{i}bar",{{width:"0%"}},{{width:"100%",duration:{dur},ease:"power2.out"}},{t0:.3f});',
           f'tl.set("#sc{i}s1",{{opacity:0}},{t1:.3f});',
-          f'tl.fromTo("#sc{i}s2",{{opacity:0,scale:.7}},{{opacity:1,scale:1,duration:.35,ease:"back.out(3)",immediateRender:false}},{t1:.3f});'] + tick
+          f'tl.fromTo("#sc{i}s2",{{opacity:0,scale:.7}},{{opacity:1,scale:1,duration:.35,ease:"back.out(3)"}},{t1:.3f});'] + tick
     return html, js, [t1]
 
 
@@ -160,19 +163,19 @@ BUILDERS = {"idcard": idcard, "clock": clock, "prompt": prompt, "wave": wave, "p
 def css(C):
     return f"""
 .id,.ck,.pm,.wv,.pg{{width:100%;display:flex;flex-direction:column;align-items:center}}
-.id-card{{width:860px;border-radius:40px;padding:34px 40px 30px;background:linear-gradient(160deg,{C['panel']},#0b0e15);border:2px solid rgba(255,255,255,.09);box-shadow:0 30px 80px rgba(0,0,0,.55)}}
-.id-top{{display:flex;justify-content:space-between;align-items:center;font-size:28px;font-weight:800;letter-spacing:.18em;color:{C['muted']}}}
+.id-card{{width:960px;border-radius:44px;padding:40px 46px 34px;background:linear-gradient(160deg,{C['panel']},#0b0e15);border:2px solid rgba(255,255,255,.09);box-shadow:0 30px 80px rgba(0,0,0,.55)}}
+.id-top{{display:flex;justify-content:space-between;align-items:center;font-size:32px;font-weight:800;letter-spacing:.18em;color:{C['muted']}}}
 .id-top b{{font-size:22px;letter-spacing:.2em;color:#fff;background:rgba(255,255,255,.1);padding:6px 16px;border-radius:999px}}
 .id-body{{display:flex;gap:38px;align-items:center;margin-top:30px}}
-.id-photo{{flex:none;width:210px;height:260px;border-radius:26px;background:#222 center/cover;box-shadow:0 0 0 3px rgba(255,255,255,.12)}}
+.id-photo{{flex:none;width:260px;height:320px;border-radius:26px;background:#222 center/cover;box-shadow:0 0 0 3px rgba(255,255,255,.12)}}
 .id-info{{display:flex;flex-direction:column;align-items:flex-start;gap:12px}}
-.id-name{{font-size:84px;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1}}
-.id-role{{font-size:34px;font-weight:700;color:{C['muted']}}}
-.id-place{{position:relative;font-size:36px;font-weight:800;color:#fff;padding:2px 8px}}
+.id-name{{font-size:104px;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1}}
+.id-role{{font-size:40px;font-weight:700;color:{C['muted']}}}
+.id-place{{position:relative;font-size:42px;font-weight:800;color:#fff;padding:2px 8px}}
 .id-place span:last-child{{position:relative}}
 .id-bar{{position:absolute;left:0;right:0;top:15%;bottom:5%;background:{C['accent']};opacity:.85;border-radius:8px;transform-origin:left center}}
-.id-badge{{margin-top:6px;font-size:38px;font-weight:900;color:#fff;background:{C['accent']};padding:8px 26px;border-radius:999px;box-shadow:0 0 34px {C['accent']}88}}
-.id-foot{{margin-top:24px;font-size:28px;font-weight:700;color:{C['muted']};letter-spacing:.04em}}
+.id-badge{{margin-top:8px;font-size:44px;font-weight:900;color:#fff;background:{C['accent']};padding:8px 26px;border-radius:999px;box-shadow:0 0 34px {C['accent']}88}}
+.id-foot{{margin-top:26px;font-size:32px;font-weight:700;color:{C['muted']};letter-spacing:.04em}}
 .ck-date{{font-size:40px;font-weight:700;color:{C['muted']}}}
 .ck-time{{font-size:230px;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}}
 .ck-state{{display:flex;align-items:center;gap:14px;font-size:44px;font-weight:800;color:#fff;margin-top:8px}}
