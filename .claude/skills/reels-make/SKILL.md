@@ -88,7 +88,9 @@ Then:
 python3 .claude/skills/reels-make/scripts/cut.py RAW.mov work/words.json --out work --drop 0-14,37-41 --keep 31.5-34 --pad 0.12
 ```
 
-`--pad` and `--max-gap` come from style.yaml `cut`. Output: `work/cut.mp4`,
+`--pad` and `--max-gap` come from style.yaml `cut`. HDR footage (iPhone HLG)
+is tone-mapped to SDR BT.709 in the cut; left as HDR, HyperFrames promotes the
+whole render to HDR and slows to about a second a frame. Output: `work/cut.mp4`,
 `work/words_cut.json`. Tell the user how long the raw was, how long the cut
 is, and what was dropped.
 

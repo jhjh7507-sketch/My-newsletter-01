@@ -31,6 +31,18 @@ def probe_fps(path):
     sys.exit(f"cannot read the frame rate of {path}")
 
 
+# iPhone HDR (HLG) or HDR10 footage: tone-map to SDR BT.709. Left as HDR, the colours
+# come out washed out and HyperFrames switches to a slow HDR render (about 1 s a frame).
+TONEMAP = ("zscale=t=linear:npl=203,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,"
+           "zscale=t=bt709:m=bt709:r=tv,format=yuv420p,")
+
+
+def is_hdr(path):
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                        "stream=color_transfer", "-of", "csv=p=0", path], capture_output=True, text=True)
+    return r.stdout.strip() in ("arib-std-b67", "smpte2084")
+
+
 def parse_drop(s):
     out = set()
     for part in filter(None, (s or "").split(",")):
@@ -87,6 +99,10 @@ def main():
     # sound as picture. Otherwise every join leaves a few ms of picture without
     # sound, and over dozens of segments the voice runs ahead of the lips.
     fps = probe_fps(a.video)
+    hdr = is_hdr(a.video)
+    if hdr:
+        print("HDR footage: tone-mapping to SDR (turn off HDR video in the iPhone camera settings to skip this)",
+              file=sys.stderr)
     snapped = []
     for s, e in segs:
         s, e = math.floor(s * fps + 1e-6) / fps, math.ceil(e * fps - 1e-6) / fps
@@ -108,10 +124,11 @@ def main():
         p = os.path.join(tmp, f"{k:04d}.mkv")
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s:.6f}", "-i", a.video,
                         "-map", "0:v:0", "-map", "0:a:0", "-t", f"{d:.6f}",
-                        "-vf", f"fps={fps}", "-frames:v", str(n),
+                        "-vf", (TONEMAP if hdr else "") + f"fps={fps}", "-frames:v", str(n),
                         "-af", f"apad=whole_dur={d:.6f},atrim=0:{d:.6f}",
                         "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
                         "-g", str(round(fps)), "-keyint_min", str(round(fps)),  # renderer seeks; sparse keyframes freeze
+                        "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
                         "-c:a", "pcm_s16le", p], check=True)
         parts.append(p)
         durs.append(d)
