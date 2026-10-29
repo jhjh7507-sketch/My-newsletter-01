@@ -53,8 +53,11 @@ def compare(i, sc, s, C):
         pops.append(t)
     mid = esc(sc.get("mid", "→"))
     head = f'<div class="pc-head">{esc(sc["title"])}</div>' if sc.get("title") else ""
+    note = f'<div class="pc-note">{esc(sc["note"])}</div>' if sc.get("note") else ""
+    if note:
+        js.append(f'tl.fromTo("#sc{i} .pc-note",{{opacity:0}},{{opacity:1,duration:.4,immediateRender:false}},{s + 1.2:.3f});')
     body = (f'<div class="pc">{head}<div class="pc-row">{boxes[0]}'
-            f'<div class="pc-mid">{mid}</div>{boxes[1]}</div></div>')
+            f'<div class="pc-mid">{mid}</div>{boxes[1]}</div>{note}</div>')
     js.append(f'tl.fromTo("#sc{i} .pc-head",{{opacity:0}},{{opacity:1,duration:.3}},{s:.3f});')
     return body, js, pops
 
@@ -83,6 +86,9 @@ def chain(i, sc, s, C):
 def counter(i, sc, s, C):
     """A number that drops (or climbs) from `from` to `to` at second `t`, with a bar.
 
+    From 0 the bar fills up; `expr` puts a formula line above the number
+    ("68kg × 1.6g"); `chip` is the line in the pill under the bar.
+
     The renderer seeks with events suppressed, so the digits are pre-rendered
     spans switched with tl.set, one per frame, instead of an onUpdate tween.
     """
@@ -101,14 +107,18 @@ def counter(i, sc, s, C):
     for k in range(1, n + 1):
         tk = t + k / 30
         js.append(f'tl.set("#sc{i}v{k}",{{opacity:1}},{tk:.3f});tl.set("#sc{i}v{k - 1}",{{opacity:0}},{tk:.3f});')
-    js += [f'tl.fromTo("#sc{i}bar",{{width:"100%"}},{{width:"{b / a * 100:.1f}%",duration:{n / 30:.2f},ease:"power2.out",'
+    w0, w1 = (0, 100) if a == 0 else (100, b / a * 100)  # from 0 the bar fills; otherwise it scales to to/from
+    js += [f'tl.fromTo("#sc{i}bar",{{width:"{w0}%"}},{{width:"{w1:.1f}%",duration:{n / 30:.2f},ease:"power2.out",'
            f'immediateRender:false}},{t:.3f});',
            f'tl.fromTo("#sc{i} .pn-chip",{{opacity:0,scale:.6}},{{opacity:1,scale:1,duration:.35,ease:"back.out(3)",'
            f'immediateRender:false}},{t + n / 30:.3f});']
-    chip = sc.get("chip") or f"{(b - a) / a * 100:+.0f}%".replace("-", "−")
+    chip = sc.get("chip") or ("" if a == 0 else f"{(b - a) / a * 100:+.0f}%".replace("-", "−"))
     left = f'<span>{esc(sc["label"])}</span>' if sc.get("label") else "<span></span>"
     head = f'<div class="pn-head">{esc(sc["title"])}</div>' if sc.get("title") else ""
-    body = (f'<div class="pn">{head}<div class="pn-num">{spans}</div>'
+    expr = f'<div class="pn-expr">{esc(sc["expr"])}</div>' if sc.get("expr") else ""
+    if expr:
+        js.append(f'tl.fromTo("#sc{i} .pn-expr",{{opacity:0,y:20}},{{opacity:1,y:0,duration:.35,immediateRender:false}},{s + .2:.3f});')
+    body = (f'<div class="pn">{head}{expr}<div class="pn-num">{spans}</div>'
             f'<div class="pn-bar"><i id="sc{i}bar" style="background:{col}"></i></div>'
             f'<div class="pn-row">{left}<b class="pn-chip" style="background:{col}">{esc(chip)}</b></div></div>')
     return body, js, [t, t + n / 30]
@@ -298,6 +308,7 @@ def css(C):
 .pc-s{{margin-top:14px;font-size:58px;font-weight:900}}
 .pc-meter{{margin-top:28px;height:16px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}}
 .pc-meter i{{display:block;height:100%;border-radius:9px}}
+.pc-note{{margin-top:34px;text-align:center;font-size:30px;font-weight:600;color:{C['muted']}}}
 .pc-mid{{font-size:64px;font-weight:900;color:{C['muted']}}}
 .ch{{width:100%;text-align:center}}
 .ch-head{{font-size:46px;font-weight:800;color:{C['ink']};margin-bottom:70px}}
@@ -309,6 +320,7 @@ def css(C):
 .ch-line i{{display:block;width:100%;height:100%;transform-origin:left center}}
 .pn{{width:100%;text-align:center}}
 .pn-head{{font-size:44px;font-weight:800;color:{C['muted']};letter-spacing:.06em;margin-bottom:24px}}
+.pn-expr{{font-size:64px;font-weight:800;color:{C['ink']};letter-spacing:-.02em;margin-bottom:10px}}
 .pn-num{{position:relative;height:290px}}
 .pn-num span{{position:absolute;left:0;right:0;top:0;opacity:0;font-size:250px;font-weight:900;letter-spacing:-.04em;line-height:290px;color:#fff;font-variant-numeric:tabular-nums}}
 .pn-num span.on{{opacity:1}}

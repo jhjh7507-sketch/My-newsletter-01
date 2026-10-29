@@ -152,11 +152,12 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   captions yellow, for the one line that must land. Change the scene every
   2-5 seconds, on a sentence. Graphic types (pro.py) show the idea instead of
   repeating the words: `keyword` (text, kicker, sub, tone: one big term with a
-  highlight sweep), `compare` (title, left and right: title, state, dir
-  up/down, tone red/blue), `chain` (title, items with text and absolute `t`
-  seconds, lighting up in order), `counter` (title, from, to, unit, t, label:
-  a big number that runs from `from` to `to` at second `t`, with a shrinking
-  bar and a percentage chip; for "43초가 20.9초가 됐어요"), `clip` (src, from,
+  highlight sweep), `compare` (title, note, left and right: title, state, dir
+  up/down, tone red/blue; `note` is a source line under the boxes), `chain` (title, items with text and absolute `t`
+  seconds, lighting up in order), `counter` (title, from, to, unit, t, label, expr, chip:
+  a big number that runs from `from` to `to` at second `t`, with a bar and a
+  chip; for "43초가 20.9초가 됐어요", or from 0 with `expr` "68kg × 1.6g" for a
+  calculation the user asks to show), `clip` (src, from,
   crop, title, labels, zoom: a screen recording such as the anatomy app,
   cropped to fill the scene; see below), `pelvis` (state tilt/glute/flexor,
   title: the tilting water bowl with the glute stretched in blue and the hip
