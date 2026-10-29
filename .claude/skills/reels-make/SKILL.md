@@ -174,7 +174,17 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   types the request and sends), `wave` (title, bars, keep, t_scan, t_close,
   from_label, to_label: the speaker's waveform; build bars from the raw audio
   and keep from cut.py's `segments.json`, so the pauses that turn red and close
-  up are the ones really cut), `progress` (file, meta, working, done, t, run).
+  up are the ones really cut), `progress` (file, meta, working, done, t, run). For information reels:
+  `label` (title, per, food, rows, highlight, t: a nutrition label with the
+  row that matters highlighted on its word), `paper` (journal, title, authors,
+  chips, finding, note, doi, t: the study a number comes from, finding
+  highlighted; check every field against the abstract, keep `finding` to one
+  line), `calc` (keys, result, t, gap, t_eq, chip, note: a calculator doing the
+  sum the speaker does, use `full`), `amino` (mode split/join, title, label, t,
+  t_label: a protein chain breaking into amino acids, or loose amino acids
+  joining into a muscle fibre), `scale` (title, tag_a, tag_b, left, right,
+  weight, chip, note, t_tip, t_drop, t_win: a balance that tips to the right
+  pan, then a weight drops on the left and it tips back; use `full`).
   A face scene with `"card": {"label": "TEST"}` shrinks the footage into a
   framed card with REC and a running timecode. Pick a prop when the sentence
   names an object, a time, an app or an action on the video; keep `keyword` for
