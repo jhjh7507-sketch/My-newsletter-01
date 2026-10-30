@@ -248,6 +248,27 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
 - `emphasis` terms turn the accent colour in cards and captions. Two or three
   per reel, not more.
 
+## Talk reels (mood edit)
+
+When the footage is a person talking their thoughts (late at night in bed,
+a quiet monologue, no demo), edit to the mood of what is said instead of with
+info graphics: `scripts/talk.py` (2026-10-30, "세상"). Read the transcript and
+pick the 3-4 lines the talk stands on. Open cold on the strongest one (cut it
+from the source with `cut.py --drop` everything else and join it in front of the
+body cut), then the talk in order. Cut with a gentler `--max-gap 0.9 --pad 0.2`
+so the pauses breathe, drop restarts and fillers, and keep the last smile with
+`--keep`. Beats alternate wide (`zoom` 1.0) and close (1.14, up to 1.28 for the
+line that matters) at sentence starts, so jump cuts read as camera moves. A
+`quote` beat stays wide, turns the footage black and white and darker, and sets
+the line in serif on the shirt below the chin, each line as it is said;
+captions are serif, low, phrase by phrase at the speaker's pauses. `stamp` is
+the real recording time from the file's creationdate. No sound effects; the
+user picks the music.
+
+```bash
+python3 .claude/skills/reels-make/scripts/talk.py work/plan.json --out work/project
+```
+
 ## 4. Build and render
 
 ```bash
