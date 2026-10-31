@@ -49,7 +49,7 @@
 
 ## 제작 방식
 
-- 완전 자동: 주제 → 원고 → 목소리(ElevenLabs, Fish Audio 비교 예정) →
+- 완전 자동: 주제 → 원고 → 목소리(ElevenLabs. Fish Audio 비교는 보류, 2026-10-31 사용자 결정. B 계정 AI 목소리를 시작할 때 다시 본다) →
   화면(HyperFrames) → 자막(음성 타이밍 맞춤) → 효과음 → MP4 → 캡션·해시태그.
 - 스킬: `/reels-style` (레퍼런스 → `style.yaml` 편집 규칙), `/reels-make` (제작).
 - CapCut은 쓰지 않는다.
