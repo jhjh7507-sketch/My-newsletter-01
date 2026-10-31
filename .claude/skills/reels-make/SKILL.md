@@ -49,6 +49,11 @@ faceless / character:
 python3 .claude/skills/reels-make/scripts/tts.py work/script.txt --voice VOICE_ID --speed 1.05 --out work
 ```
 
+Fish Audio instead (free model `s2.1-pro-free`; added 2026-10-31 for the B
+account): `fish.py work/script.txt --voice REFERENCE_ID --out work` writes the
+same two files, the word times coming from ElevenLabs Speech to Text on the
+generated audio. Compare both on the same script before picking a voice.
+
 `--list-voices` prints the voices the key can use. VOICE_ID and speed come from
 style.yaml `voice`. Output: `work/voice.mp3`, `work/words.json`.
 
