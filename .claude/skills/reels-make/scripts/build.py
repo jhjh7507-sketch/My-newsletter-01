@@ -65,6 +65,9 @@ def probe_size(path):
 def chunk_captions(words, lo, hi):
     chunks, cur = [], []
     for w in words:
+        if cur and w["start"] - cur[-1]["end"] > 0.8:  # a silent demo: no caption over it
+            chunks.append(cur)
+            cur = []
         cur.append(w)
         if len(cur) >= hi or (len(cur) >= lo and PUNCT.search(w["text"])):
             chunks.append(cur)
