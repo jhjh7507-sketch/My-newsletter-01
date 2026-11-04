@@ -202,6 +202,13 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   stands up and the head leaves the top of the frame, make that stretch `split` with
   `focus_y` about 0.6 so the lower half shows hips to knees on purpose (the user asked
   whether AI could restore the head; AI outpainting of a real face was judged too risky).
+  A face scene can push toward a point on its word: `"zoom": {"t", "scale", "origin", "dur"}`
+  (feet: origin "55% 100%", scale 2.2). Silent gaps where the speaker looks away (at a
+  script) or has eyes shut: measure gaze (below), take the gaps between words that hold
+  an off-camera frame and are 0.1 s or longer, cut them from cut.mp4 with a trim/concat
+  pass and shift the word and plan times by what was removed before them. The user
+  prefers this to covering glances, and prefers a cut-off head to hiding the face
+  (2026-11-05); keep `hide` for rare cases.
   Plan `hide` ([[a, b], ...]) covers moments where the speaker glances at a script
   beside the camera, or the head leaves the frame: a face scene punches in on the body
   (scale 1.75 toward the legs), a split scene aims its footage at the body. Find them by

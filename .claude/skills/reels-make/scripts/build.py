@@ -252,6 +252,15 @@ def main():
             if lay == "face":
                 js.append(f'tl.fromTo("#ft",{{scale:1}},{{scale:{M["face_push_scale"]},'
                           f'duration:{T if prev == "split" else push:.3f},ease:"power2.out",immediateRender:false}},{s:.3f});')
+            if lay == "face" and sc.get("zoom"):
+                # a slow push toward a point on the footage on its word, e.g. the feet on
+                # "발바닥으로 바닥을 밀어주세요" (2026-11-05); the origin goes back at the scene end
+                z = sc["zoom"]
+                fy0 = plan.get("focus_y")
+                js.append(f'tl.set("#ft",{{transformOrigin:"{z.get("origin", "50% 90%")}"}},{float(z["t"]):.3f});'
+                          f'tl.to("#ft",{{scale:{float(z.get("scale", 2))},duration:{float(z.get("dur", .9))},'
+                          f'ease:"power2.inOut",immediateRender:false}},{float(z["t"]):.3f});'
+                          f'tl.set("#ft",{{transformOrigin:"50% {float(fy0 if fy0 is not None else .4) * 100:.0f}%"}},{e:.3f});')
             if lay == "face" and sc.get("card"):
                 # the footage itself shrinks into a framed card ("테스트 영상으로 찍고 있는 중")
                 k, card = 0.8, sc["card"]
