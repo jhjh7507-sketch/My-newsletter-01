@@ -202,6 +202,12 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   stands up and the head leaves the top of the frame, make that stretch `split` with
   `focus_y` about 0.6 so the lower half shows hips to knees on purpose (the user asked
   whether AI could restore the head; AI outpainting of a real face was judged too risky).
+  Plan `hide` ([[a, b], ...]) covers moments where the speaker glances at a script
+  beside the camera, or the head leaves the frame: a face scene punches in on the body
+  (scale 1.75 toward the legs), a split scene aims its footage at the body. Find them by
+  measuring head yaw/pitch and eye-look blendshapes with mediapipe FaceLandmarker at 5
+  fps (needs libegl1; the model file is on storage.googleapis.com), then check the
+  flagged frames by eye and leave glances that are part of a demo (2026-11-05).
   A face scene with `"card": {"label": "TEST"}` shrinks the footage into a
   framed card with REC and a running timecode. Pick a prop when the sentence
   names an object, a time, an app or an action on the video; keep `keyword` for

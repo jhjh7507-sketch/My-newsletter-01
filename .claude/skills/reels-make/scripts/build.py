@@ -360,6 +360,20 @@ def main():
         clips.append(f'<audio src="{media["voice"]}" data-start="0" data-duration="{D}" '
                      f'data-track-index="4"></audio>')
 
+    # plan "hide": [[a, b], ...] stretches where the speaker looks away (at a script) or the
+    # head leaves the frame: a face scene punches in on the body, a split scene aims its
+    # footage window at the body; both return at b (2026-11-05)
+    fy0 = plan.get("focus_y")
+    origin0 = f"50% {float(fy0) * 100:.0f}%" if fy0 is not None else "50% 40%"
+    for ha, hb in plan.get("hide", []) if mixed else []:
+        k = max(j for j in range(len(scenes)) if starts[j] <= ha)
+        if lays[k] == "face":
+            js.append(f'tl.set("#ft",{{scale:1.75,transformOrigin:"50% 78%"}},{ha:.3f});'
+                      f'tl.set("#ft",{{scale:{M["face_push_scale"]},transformOrigin:"{origin0}"}},{hb:.3f});')
+        elif lays[k] == "split":
+            back = scenes[k].get("focus_y", fy0 if fy0 is not None else 0.5)
+            js.append(f'tl.set("#ft",{{objectPosition:"50% 64%"}},{ha:.3f});'
+                      f'tl.set("#ft",{{objectPosition:"50% {float(back) * 100:.0f}%"}},{hb:.3f});')
     span = lambda i: (starts[i], starts[i + 1] if i + 1 < len(scenes) else D)
     hot = [span(i) for i, sc in enumerate(scenes) if sc.get("hot")]
     # a full-frame graphic sits on the centre line, so its captions drop below it
