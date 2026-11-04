@@ -190,6 +190,11 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   joining into a muscle fibre), `scale` (title, tag_a, tag_b, left, right,
   weight, chip, note, t_tip, t_drop, t_win: a balance that tips to the right
   pan, then a weight drops on the left and it tips back; use `full`).
+  `sole` (title; t_push for pressure ripples, t_heel and t_fore fill the heel and
+  ball of the foot with heel/fore shares, default 6 and 4: a weight-distribution cue),
+  `house` (title, t_ground, t_pillar, t_roof, then t_map1-3 relabel ground, pillars and
+  roof onto the body via `map` {ground,left,right,roof}, chip, t_chip: an analogy built
+  and read back onto the body; added 2026-11-05 for "발바닥만 기억하세요").
   A face scene with `"card": {"label": "TEST"}` shrinks the footage into a
   framed card with REC and a running timecode. Pick a prop when the sentence
   names an object, a time, an app or an action on the video; keep `keyword` for

@@ -301,8 +301,89 @@ def scale(i, sc, s, C):
     return html, js, [ta, tb + .5, tc]
 
 
+def sole(i, sc, s, C):
+    """A foot sole seen from above. With `t_push` pressure ripples spread from the heel and the
+    ball of the foot ("발바닥으로 바닥을 밀어주세요"); with `t_heel` and `t_fore` the two zones
+    fill in turn and their shares appear beside them ("뒤꿈치 6, 앞꿈치 4"). Without either it
+    is the plain sole, drawn in, for the line that names it."""
+    red = C["accent"]
+    th, tf, tp = (float(sc[k]) if sc.get(k) is not None else None for k in ("t_heel", "t_fore", "t_push"))
+    toes = "".join(f'<circle cx="{x}" cy="{y}" r="{r}" class="so-line" pathLength="1"/>'
+                   for x, y, r in ((215, 82, 40), (288, 60, 27), (340, 70, 23), (384, 93, 20), (415, 126, 17)))
+    zone = lambda key, cx, cy, rx, ry: (f'<ellipse id="sc{i}z{key}" cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="{red}" '
+                                       f'opacity="0" style="filter:drop-shadow(0 0 28px {red})"/>')
+    ring = lambda key, cx, cy: f'<circle id="sc{i}r{key}" cx="{cx}" cy="{cy}" r="60" class="so-ring" opacity="0"/>'
+    side = lambda key, y, name, val: (f'<g id="sc{i}t{key}" opacity="0"><text x="500" y="{y - 40}" class="so-name">{esc(name)}</text>'
+                                     f'<text x="500" y="{y + 70}" class="so-val">{esc(val)}</text></g>')
+    svg = (f'<svg class="so-svg" viewBox="0 0 900 920">{zone("f", 300, 270, 108, 88)}{zone("h", 298, 772, 86, 80)}'
+           f'<path class="so-line" pathLength="1" d="M300 120 C390 120 430 190 432 290 C434 380 400 450 392 530 '
+           f'C384 610 410 680 405 760 C398 850 350 885 300 885 C245 885 200 850 198 770 C196 690 215 620 205 540 '
+           f'C195 460 165 390 170 290 C175 190 215 120 300 120 Z"/>{toes}{ring("f", 300, 270)}{ring("h", 298, 772)}'
+           f'{side("f", 280, sc.get("fore_label", "앞꿈치"), sc.get("fore", "4"))}'
+           f'{side("h", 782, sc.get("heel_label", "뒤꿈치"), sc.get("heel", "6"))}</svg>')
+    html = (f'<div class="so"><div class="so-head" id="sc{i}hd">{esc(sc.get("title", ""))}</div>{svg}'
+            f'<div class="so-note" id="sc{i}nt">{esc(sc.get("note", ""))}</div></div>')
+    js = [_in(f"#sc{i}hd", s),
+          f'tl.fromTo("#sc{i} .so-line",{{strokeDashoffset:1}},{{strokeDashoffset:0,duration:.8,ease:"power2.out",stagger:.04}},{s + .05:.3f});']
+    pops = []
+    if tp is not None:
+        for k, key in enumerate("hf"):
+            js.append(f'tl.fromTo("#sc{i}r{key}",{{attr:{{r:50}},opacity:.9}},{{attr:{{r:190}},opacity:0,duration:1.1,'
+                      f'ease:"power2.out",repeat:2,immediateRender:false}},{tp + k * .15:.3f});')
+        pops.append(tp)
+    for key, t, op in (("h", th, .92), ("f", tf, .55)):
+        if t is None:
+            continue
+        js += [f'tl.fromTo("#sc{i}z{key}",{{opacity:0,scale:.6,transformOrigin:"50% 50%"}},{{opacity:{op},scale:1,'
+               f'duration:.45,ease:"back.out(2)"}},{t:.3f});', _in(f"#sc{i}t{key}", t + .05, y=0)]
+        pops.append(t)
+    if sc.get("note"):
+        js.append(_in(f"#sc{i}nt", float(sc.get("t_note", (tf or th or s) + .6))))
+    return html, js, pops
+
+
+def house(i, sc, s, C):
+    """The analogy, built and then read back onto the body: the ground slab is laid
+    ("지반"), two pillars rise ("기둥"), the roof lands ("안전하게"); then the ground
+    becomes the sole, the pillars the glutes and lower abs, and the roof the knees and
+    back they no longer hold up alone (`chip`)."""
+    yel, red = C["caption_accent"], C["accent"]
+    t = {k: float(sc[k]) for k in ("t_ground", "t_pillar", "t_roof", "t_map1", "t_map2", "t_map3")}
+    lab = lambda key, x, y, a, b, anchor="middle", new="": (
+        f'<text id="sc{i}{key}a" x="{x}" y="{y}" class="hs-lab" text-anchor="{anchor}">{esc(a)}</text>'
+        f'<text id="sc{i}{key}b" x="{x}" y="{y}" class="hs-lab hs-new{new}" text-anchor="{anchor}">{esc(b)}</text>')
+    m = sc.get("map", {})
+    svg = (f'<svg class="hs-svg" viewBox="0 0 1000 800">'
+           f'<g id="sc{i}gr"><rect x="110" y="640" width="780" height="100" rx="18" class="hs-ground"/>'
+           f'{lab("g", 500, 707, "지반", m.get("ground", "발바닥"), new=" hs-dark")}</g>'
+           f'<rect id="sc{i}p1" x="300" y="330" width="74" height="310" rx="10" class="hs-pillar"/>'
+           f'<rect id="sc{i}p2" x="626" y="330" width="74" height="310" rx="10" class="hs-pillar"/>'
+           f'<g id="sc{i}pl">{lab("l", 282, 505, "기둥", m.get("left", "엉덩이"), "end")}'
+           f'{lab("r", 718, 505, "기둥", m.get("right", "아랫배"), "start")}</g>'
+           f'<g id="sc{i}rf"><path d="M190 330 L500 140 L810 330 Z" class="hs-roof"/>'
+           f'{lab("t", 500, 290, "집", m.get("roof", "무릎 · 허리"))}</g></svg>')
+    html = (f'<div class="hs"><div class="hs-head" id="sc{i}hd">{esc(sc.get("title", ""))}</div>{svg}'
+            f'<div class="hs-chip" id="sc{i}chip" style="background:{yel}">{esc(sc.get("chip", ""))}</div></div>')
+    swap = lambda key, at: [f'tl.to("#sc{i}{key}a",{{opacity:0,y:-18,duration:.3,immediateRender:false}},{at:.3f});',
+                            f'tl.fromTo("#sc{i}{key}b",{{opacity:0,y:18}},{{opacity:1,y:0,duration:.35,ease:"back.out(2)"}},{at + .1:.3f});']
+    js = [_in(f"#sc{i}hd", s),
+          f'tl.fromTo("#sc{i}gr",{{opacity:0,scaleX:.3,transformOrigin:"50% 50%"}},{{opacity:1,scaleX:1,duration:.5,ease:"expo.out"}},{t["t_ground"]:.3f});',
+          f'tl.fromTo("#sc{i}p1, #sc{i}p2",{{scaleY:0,transformOrigin:"50% 100%"}},{{scaleY:1,duration:.6,ease:"power3.out",stagger:.12}},{t["t_pillar"]:.3f});',
+          f'tl.fromTo("#sc{i}pl",{{opacity:0}},{{opacity:1,duration:.3}},{t["t_pillar"] + .4:.3f});',
+          f'tl.fromTo("#sc{i}rf",{{opacity:0,y:-220}},{{opacity:1,y:0,duration:.55,ease:"back.out(1.6)"}},{t["t_roof"]:.3f});']
+    js += swap("g", t["t_map1"]) + [
+        f'tl.to("#sc{i} .hs-ground",{{fill:"{yel}",duration:.4,immediateRender:false}},{t["t_map1"]:.3f});']
+    js += swap("l", t["t_map2"]) + swap("r", t["t_map2"] + .25) + [
+        f'tl.to("#sc{i} .hs-pillar",{{fill:"{red}",duration:.4,immediateRender:false}},{t["t_map2"]:.3f});']
+    js += swap("t", t["t_map3"])
+    t_chip = float(sc.get("t_chip", t["t_map3"] + .8))
+    js.append(f'tl.fromTo("#sc{i}chip",{{opacity:0,scale:.6}},{{opacity:1,scale:1,duration:.4,ease:"back.out(3)"}},{t_chip:.3f});')
+    return html, js, [t["t_ground"], t["t_pillar"], t["t_roof"], t["t_map1"], t["t_map2"], t["t_map3"]]
+
+
 BUILDERS = {"idcard": idcard, "clock": clock, "prompt": prompt, "wave": wave, "progress": progress,
-            "label": label, "paper": paper, "calc": calc, "amino": amino, "scale": scale}
+            "label": label, "paper": paper, "calc": calc, "amino": amino, "scale": scale,
+            "sole": sole, "house": house}
 
 
 def css(C):
@@ -346,7 +427,17 @@ def css(C):
 .sb-pt{{font-size:46px;font-weight:900;fill:#111;text-anchor:middle}}.sb-bt{{font-size:38px;font-weight:900;fill:#111;text-anchor:middle}}
 .sb-chip{{margin-top:6px;font-size:46px;font-weight:900;color:#111;padding:10px 34px;border-radius:999px}}
 .sb-note{{margin-top:16px;font-size:28px;font-weight:600;color:{C['muted']}}}
-.id,.ck,.pm,.wv,.pg,.nl,.pp,.am,.sb{{width:100%;display:flex;flex-direction:column;align-items:center}}
+.so-head,.hs-head{{font-size:44px;font-weight:800;color:{C['muted']}}}
+.so-svg{{width:700px;height:716px;overflow:visible;margin-top:6px}}
+.so-line{{fill:none;stroke:#f4f6fa;stroke-width:9;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}}
+.so-ring{{fill:none;stroke:{C['accent']};stroke-width:6}}
+.so-name{{font-size:44px;font-weight:800;fill:{C['muted']}}}.so-val{{font-size:150px;font-weight:900;fill:#fff}}
+.so-note{{margin-top:4px;font-size:34px;font-weight:700;color:{C['muted']};opacity:0}}
+.hs-svg{{width:900px;height:720px;overflow:visible}}
+.hs-ground{{fill:#3a4150}}.hs-pillar{{fill:#e9ecf2}}.hs-roof{{fill:#2a2f3a;stroke:#e9ecf2;stroke-width:8;stroke-linejoin:round}}
+.hs-lab{{font-size:54px;font-weight:900;fill:#fff}}.hs-new{{fill:#fff;opacity:0}}.hs-lab.hs-dark{{fill:#111}}
+.hs-chip{{margin-top:2px;font-size:44px;font-weight:900;color:#111;padding:10px 34px;border-radius:999px;opacity:0}}
+.id,.ck,.pm,.wv,.pg,.nl,.pp,.am,.sb,.so,.hs{{width:100%;display:flex;flex-direction:column;align-items:center}}
 .id-card{{width:960px;border-radius:44px;padding:40px 46px 34px;background:linear-gradient(160deg,{C['panel']},#0b0e15);border:2px solid rgba(255,255,255,.09);box-shadow:0 30px 80px rgba(0,0,0,.55)}}
 .id-top{{display:flex;justify-content:space-between;align-items:center;font-size:32px;font-weight:800;letter-spacing:.18em;color:{C['muted']}}}
 .id-top b{{font-size:22px;letter-spacing:.2em;color:#fff;background:rgba(255,255,255,.1);padding:6px 16px;border-radius:999px}}
