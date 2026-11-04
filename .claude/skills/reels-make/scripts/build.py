@@ -255,12 +255,18 @@ def main():
             if lay == "face" and sc.get("zoom"):
                 # a slow push toward a point on the footage on its word, e.g. the feet on
                 # "발바닥으로 바닥을 밀어주세요" (2026-11-05); the origin goes back at the scene end
-                z = sc["zoom"]
+                # a list of steps moves the zoom on: hips on "엉덩이가", then belly on "아랫배랑"
                 fy0 = plan.get("focus_y")
-                js.append(f'tl.set("#ft",{{transformOrigin:"{z.get("origin", "50% 90%")}"}},{float(z["t"]):.3f});'
-                          f'tl.to("#ft",{{scale:{float(z.get("scale", 2))},duration:{float(z.get("dur", .9))},'
-                          f'ease:"power2.inOut",immediateRender:false}},{float(z["t"]):.3f});'
-                          f'tl.set("#ft",{{transformOrigin:"50% {float(fy0 if fy0 is not None else .4) * 100:.0f}%"}},{e:.3f});')
+                for n, z in enumerate(sc["zoom"] if isinstance(sc["zoom"], list) else [sc["zoom"]]):
+                    tz, dz = float(z["t"]), float(z.get("dur", .9))
+                    if n == 0:
+                        js.append(f'tl.set("#ft",{{transformOrigin:"{z.get("origin", "50% 90%")}"}},{tz:.3f});')
+                    to = {"scale": float(z["scale"])} if "scale" in z else {}
+                    if n and "origin" in z:
+                        to["transformOrigin"] = z["origin"]
+                    js.append(f'tl.to("#ft",{{{",".join(f"{k}:{json.dumps(v)}" for k, v in to.items())},duration:{dz},'
+                              f'ease:"power2.inOut",immediateRender:false}},{tz:.3f});')
+                js.append(f'tl.set("#ft",{{transformOrigin:"50% {float(fy0 if fy0 is not None else .4) * 100:.0f}%"}},{e:.3f});')
             if lay == "face" and sc.get("card"):
                 # the footage itself shrinks into a framed card ("테스트 영상으로 찍고 있는 중")
                 k, card = 0.8, sc["card"]
@@ -374,11 +380,16 @@ def main():
     # footage window at the body; both return at b (2026-11-05)
     fy0 = plan.get("focus_y")
     origin0 = f"50% {float(fy0) * 100:.0f}%" if fy0 is not None else "50% 40%"
-    for ha, hb in plan.get("hide", []) if mixed else []:
+    for h in plan.get("hide", []) if mixed else []:
+        # [a, b] or [a, b, origin, scale]: eases in and out over 0.2 s rather than cutting
+        ha, hb = float(h[0]), float(h[1])
+        ho, hs = (h[2], float(h[3])) if len(h) > 3 else ("50% 78%", 1.75)
         k = max(j for j in range(len(scenes)) if starts[j] <= ha)
         if lays[k] == "face":
-            js.append(f'tl.set("#ft",{{scale:1.75,transformOrigin:"50% 78%"}},{ha:.3f});'
-                      f'tl.set("#ft",{{scale:{M["face_push_scale"]},transformOrigin:"{origin0}"}},{hb:.3f});')
+            js.append(f'tl.set("#ft",{{transformOrigin:"{ho}"}},{ha:.3f});'
+                      f'tl.to("#ft",{{scale:{hs},duration:.2,ease:"power2.out",immediateRender:false}},{ha:.3f});'
+                      f'tl.to("#ft",{{scale:{M["face_push_scale"]},duration:.2,ease:"power2.in",immediateRender:false}},{hb - .2:.3f});'
+                      f'tl.set("#ft",{{transformOrigin:"{origin0}"}},{hb:.3f});')
         elif lays[k] == "split":
             back = scenes[k].get("focus_y", fy0 if fy0 is not None else 0.5)
             js.append(f'tl.set("#ft",{{objectPosition:"50% 64%"}},{ha:.3f});'

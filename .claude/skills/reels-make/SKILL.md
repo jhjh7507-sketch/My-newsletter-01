@@ -203,7 +203,12 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   `focus_y` about 0.6 so the lower half shows hips to knees on purpose (the user asked
   whether AI could restore the head; AI outpainting of a real face was judged too risky).
   A face scene can push toward a point on its word: `"zoom": {"t", "scale", "origin", "dur"}`
-  (feet: origin "55% 100%", scale 2.2). Silent gaps where the speaker looks away (at a
+  (feet: origin "55% 100%", scale 2.2), or a list of steps that moves on (hips "40% 72%"
+  at 2.0 on "엉덩이가", then origin "45% 52%" on "아랫배랑"). A glance the user points
+  out while speaking cannot be cut: cover it with the graphic of that moment turned
+  `full`, or a `hide` entry [a, b, origin, scale] that zooms on the body part being
+  named. Trim look-away gaps from the middle only (keep about 0.09 s each side) so the
+  speech does not sound chopped (user, 2026-11-05). Silent gaps where the speaker looks away (at a
   script) or has eyes shut: measure gaze (below), take the gaps between words that hold
   an off-camera frame and are 0.1 s or longer, cut them from cut.mp4 with a trim/concat
   pass and shift the word and plan times by what was removed before them. The user
