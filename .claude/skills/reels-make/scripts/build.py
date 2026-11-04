@@ -230,6 +230,11 @@ def main():
         e = starts[i + 1] if i + 1 < len(scenes) else D
         lay = lays[i] if mixed else None
         dur, attrs, tj = e - s, 'data-track-index="1"', []
+        if mixed and (sc.get("focus_y") is not None or any(x.get("focus_y") is not None for x in scenes)):
+            # a scene can aim the footage window elsewhere, e.g. at the legs while the speaker
+            # stands up and the head leaves the top of the frame (2026-11-05)
+            fy = sc.get("focus_y", plan.get("focus_y", 0.5))
+            js.append(f'tl.set("#ft",{{objectPosition:"50% {float(fy) * 100:.0f}%"}},{s:.3f});')
         if mixed:
             prev = lays[i - 1] if i else None
             nxt = lays[i + 1] if i + 1 < len(lays) else None

@@ -381,9 +381,59 @@ def house(i, sc, s, C):
     return html, js, [t["t_ground"], t["t_pillar"], t["t_roof"], t["t_map1"], t["t_map2"], t["t_map3"]]
 
 
+BODY_PARTS = {  # side view, half squat, facing right (viewBox 0 0 1000 900)
+    "knee": (655, 600, 72), "lowback": (440, 478, 70), "belly": (528, 505, 70),
+    "glute": (392, 585, 82), "sole": (585, 818, 78),
+}
+
+
+def body(i, sc, s, C):
+    """A pictogram of a half squat seen from the side, in the same line style as `sole`.
+    `zones` light parts of it on their words ({part, t, label, tone}; parts: knee, lowback,
+    belly, glute, sole), and `t_arrow` draws the hips-back arrow ("엉덩이가 뒤로").
+    Used instead of anatomy-app footage when the point is where to push, not which muscle."""
+    lines = (("M540 790 L650 600", "shin"), ("M650 600 L430 562", "thigh"), ("M430 562 L560 335", "torso"),
+             ("M560 340 L770 410", "arm"), ("M520 806 L650 806", "foot"))
+    zones = sc.get("zones", [])
+    glow = "".join(
+        f'<circle id="sc{i}z{k}" cx="{BODY_PARTS[z["part"]][0]}" cy="{BODY_PARTS[z["part"]][1]}" '
+        f'r="{BODY_PARTS[z["part"]][2]}" fill="{tone(C, z.get("tone", "red"))}" opacity="0" '
+        f'style="filter:drop-shadow(0 0 30px {tone(C, z.get("tone", "red"))})"/>' for k, z in enumerate(zones))
+    labs = ""
+    for k, z in enumerate(zones):
+        x, y, r = BODY_PARTS[z["part"]]
+        if z["part"] == "glute":  # under the hips, clear of the hips-back arrow
+            lx, ly, anchor = x - 20, y + r + 70, "middle"
+        else:
+            lx = x + r + 26 if z["part"] in ("knee", "belly", "sole") else x - r - 26
+            ly, anchor = y + 18, "start" if lx > x else "end"
+        labs += (f'<text id="sc{i}l{k}" x="{lx}" y="{ly}" text-anchor="{anchor}" class="bd-lab" '
+                 f'opacity="0">{esc(z.get("label", ""))}</text>')
+    arrow = (f'<g id="sc{i}ar" opacity="0"><path d="M300 585 L170 585" class="bd-arrow"/>'
+             f'<path d="M205 548 L160 585 L205 622" class="bd-arrow"/></g>') if sc.get("t_arrow") is not None else ""
+    svg = (f'<svg class="bd-svg" viewBox="0 0 1000 900">{glow}'
+           + "".join(f'<path d="{d}" class="bd-line" pathLength="1"/>' for d, _ in lines)
+           + f'<circle cx="612" cy="262" r="62" class="bd-line" pathLength="1"/>{arrow}{labs}</svg>')
+    html = f'<div class="bd"><div class="bd-head" id="sc{i}hd">{esc(sc.get("title", ""))}</div>{svg}</div>'
+    js = [_in(f"#sc{i}hd", s),
+          f'tl.fromTo("#sc{i} .bd-line",{{strokeDashoffset:1}},{{strokeDashoffset:0,duration:.7,ease:"power2.out",stagger:.05}},{s + .05:.3f});']
+    pops = []
+    for k, z in enumerate(zones):
+        t = float(z["t"])
+        js += [f'tl.fromTo("#sc{i}z{k}",{{opacity:0,scale:.5,transformOrigin:"50% 50%"}},{{opacity:.85,scale:1,'
+               f'duration:.4,ease:"back.out(2)"}},{t:.3f});',
+               f'tl.fromTo("#sc{i}l{k}",{{opacity:0}},{{opacity:1,duration:.3}},{t + .05:.3f});']
+        pops.append(t)
+    if arrow:
+        ta = float(sc["t_arrow"])
+        js.append(f'tl.fromTo("#sc{i}ar",{{opacity:0,x:60}},{{opacity:1,x:0,duration:.45,ease:"power2.out"}},{ta:.3f});')
+        pops.append(ta)
+    return html, js, pops
+
+
 BUILDERS = {"idcard": idcard, "clock": clock, "prompt": prompt, "wave": wave, "progress": progress,
             "label": label, "paper": paper, "calc": calc, "amino": amino, "scale": scale,
-            "sole": sole, "house": house}
+            "sole": sole, "house": house, "body": body}
 
 
 def css(C):
@@ -437,7 +487,12 @@ def css(C):
 .hs-ground{{fill:#3a4150}}.hs-pillar{{fill:#e9ecf2}}.hs-roof{{fill:#2a2f3a;stroke:#e9ecf2;stroke-width:8;stroke-linejoin:round}}
 .hs-lab{{font-size:54px;font-weight:900;fill:#fff}}.hs-new{{fill:#fff;opacity:0}}.hs-lab.hs-dark{{fill:#111}}
 .hs-chip{{margin-top:2px;font-size:44px;font-weight:900;color:#111;padding:10px 34px;border-radius:999px;opacity:0}}
-.id,.ck,.pm,.wv,.pg,.nl,.pp,.am,.sb,.so,.hs{{width:100%;display:flex;flex-direction:column;align-items:center}}
+.bd-head{{font-size:44px;font-weight:800;color:{C['muted']}}}
+.bd-svg{{width:840px;height:756px;overflow:visible}}
+.bd-line{{fill:none;stroke:#f4f6fa;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}}
+.bd-lab{{font-size:56px;font-weight:900;fill:#fff}}
+.bd-arrow{{fill:none;stroke:{C['accent']};stroke-width:16;stroke-linecap:round;stroke-linejoin:round}}
+.id,.ck,.pm,.wv,.pg,.nl,.pp,.am,.sb,.so,.hs,.bd{{width:100%;display:flex;flex-direction:column;align-items:center}}
 .id-card{{width:960px;border-radius:44px;padding:40px 46px 34px;background:linear-gradient(160deg,{C['panel']},#0b0e15);border:2px solid rgba(255,255,255,.09);box-shadow:0 30px 80px rgba(0,0,0,.55)}}
 .id-top{{display:flex;justify-content:space-between;align-items:center;font-size:32px;font-weight:800;letter-spacing:.18em;color:{C['muted']}}}
 .id-top b{{font-size:22px;letter-spacing:.2em;color:#fff;background:rgba(255,255,255,.1);padding:6px 16px;border-radius:999px}}

@@ -195,6 +195,13 @@ the sentence that starts the scene, as spoken) rather than guessing seconds.
   `house` (title, t_ground, t_pillar, t_roof, then t_map1-3 relabel ground, pillars and
   roof onto the body via `map` {ground,left,right,roof}, chip, t_chip: an analogy built
   and read back onto the body; added 2026-11-05 for "발바닥만 기억하세요").
+  `body` (title, zones [{part knee/lowback/belly/glute/sole, t, label, tone}], t_arrow
+  for a hips-back arrow: a half-squat pictogram whose parts light on their words; use it
+  instead of anatomy footage when the point is where to push, not which muscle, as the
+  user asked on 2026-11-05). A mixed scene can set its own `focus_y`: when the speaker
+  stands up and the head leaves the top of the frame, make that stretch `split` with
+  `focus_y` about 0.6 so the lower half shows hips to knees on purpose (the user asked
+  whether AI could restore the head; AI outpainting of a real face was judged too risky).
   A face scene with `"card": {"label": "TEST"}` shrinks the footage into a
   framed card with REC and a running timecode. Pick a prop when the sentence
   names an object, a time, an app or an action on the video; keep `keyword` for
