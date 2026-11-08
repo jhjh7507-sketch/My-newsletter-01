@@ -329,6 +329,25 @@ Fix and rebuild when: a caption covers a face or a card, text wraps badly,
 a card is empty, or audio and captions drift. Then copy the result where the
 user can open it (repo `output/YYYY-MM-DD-slug.mp4`, git-ignored) and send it.
 
+### Real sound effects and background music (after render)
+
+`scripts/sfxmix.py` remixes a rendered reel's audio without re-rendering: the
+voice track (`project/media/video.mp4`), sound effects at given times, and an
+optional music bed that sits about 16 dB under the voice while it talks and
+comes up in the pauses. Pick the effects from the user's Drive pack "100만 조회수
+바이럴 효과음 모음" (download into `work/sfxpack/`, never commit them): Soft
+Whoosh on cuts to a graphic, a short button sound when a zone or value lights
+up, "숫자 Rising할 때" under a counter, the cloth whoosh on a zoom, the book-drop
+thud for building blocks, ding on a label swap. Nothing over stand/sit demos.
+Music only from a recording that is itself free (public domain or CC0, e.g.
+Musopen on Wikimedia Commons; `upload.wikimedia.org` is allowed), normalized
+first (`loudnorm=I=-16`). Do not also add Instagram music on top.
+
+```bash
+python3 .claude/skills/reels-make/scripts/sfxmix.py work/sfx_events.json work/project/media/video.mp4 \
+  output/reel.mp4 output/reel-sfx.mp4 --dir work/sfxpack [--bgm work/bgm/track.wav --bgm-db -10]
+```
+
 ## 6. Publish kit
 
 Write the caption with `/ig-caption` and the cover line (the hook, 2 lines
