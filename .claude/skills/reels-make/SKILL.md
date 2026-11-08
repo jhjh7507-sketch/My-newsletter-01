@@ -341,7 +341,9 @@ up, "숫자 Rising할 때" under a counter, the cloth whoosh on a zoom, the book
 thud for building blocks, ding on a label swap. Nothing over stand/sit demos.
 Music only from a recording that is itself free (public domain or CC0, e.g.
 Musopen on Wikimedia Commons; `upload.wikimedia.org` is allowed), normalized
-first (`loudnorm=I=-16`). Do not also add Instagram music on top.
+first (`loudnorm=I=-16`). Do not also add Instagram music on top. For account A the user adds
+music in Instagram (2026-11-08), so the reel gets effects only. `--gain-db` matches the
+rendered reel's loudness (the squat reel needed +2.5 to stay at -13.5 LUFS).
 
 ```bash
 python3 .claude/skills/reels-make/scripts/sfxmix.py work/sfx_events.json work/project/media/video.mp4 \

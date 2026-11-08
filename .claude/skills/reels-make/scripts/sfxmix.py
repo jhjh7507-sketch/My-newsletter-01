@@ -1,10 +1,11 @@
 """Mix sound effects (and optional background music) under the voice of a rendered reel.
-python3 sfxmix.py events.json voice_src video_in out.mp4 [--bgm bgm.mp3 --bgm-db -26]
+python3 sfxmix.py events.json voice_src video_in out.mp4 [--bgm bgm.mp3 --bgm-db -26] [--gain-db 2.5]
 events.json: [{"t": sec, "f": file, "peak_db": -18, "align": "peak"|"onset"}]"""
 import json, subprocess, sys, argparse, numpy as np, os
 ap = argparse.ArgumentParser()
 ap.add_argument("events"); ap.add_argument("voice"); ap.add_argument("video"); ap.add_argument("out")
 ap.add_argument("--dir", default="."); ap.add_argument("--bgm"); ap.add_argument("--bgm-db", type=float, default=-26)
+ap.add_argument("--gain-db", type=float, default=0, help="final gain, e.g. to match the rendered reel's loudness")
 a = ap.parse_args()
 ev = json.load(open(a.events))
 dur = float(subprocess.check_output(["ffprobe","-v","error","-show_entries","format=duration","-of","csv=p=0",a.video]))
@@ -37,7 +38,7 @@ if a.bgm:
     fc.append("[bg][key]sidechaincompress=threshold=0.03:ratio=2:attack=80:release=600[bgd]")
     fc.append("[fx][bgd]amix=inputs=2:normalize=0[mx]"); last = "[mx]"
 if not a.bgm: fc.append("[key]anullsink")
-fc.append(f"{last}alimiter=limit=0.95,apad[aout]")
+fc.append(f"{last}volume={a.gain_db}dB,alimiter=limit=0.95,apad[aout]")
 open(a.out + ".fc", "w").write(";\n".join(fc))
 subprocess.run(["ffmpeg","-v","error","-y",*inputs,"-filter_complex_script",a.out+".fc",
                 "-map","0:v","-map","[aout]","-c:v","copy","-c:a","aac","-b:a","160k","-shortest",
