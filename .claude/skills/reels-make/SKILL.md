@@ -352,9 +352,9 @@ python3 .claude/skills/reels-make/scripts/sfxmix.py work/sfx_events.json work/pr
 
 ### Cover (center-account template)
 
-Covers follow one template (2026-11-13): the chosen frame, shaded to black from the
-middle down, a small white condition line and a big yellow line (the hook), sized to
-the 3:4 profile grid. Take a clean frame from the cut (not the captioned render) where
+Covers follow one template (2026-11-13): the chosen frame left as it is (no black shade
+over the body), a small white condition line and close under it a big yellow line (the
+hook), with a soft dark glow for legibility, sized to the 3:4 profile grid. Take a clean frame from the cut (not the captioned render) where
 the user looks at the lens, then:
 
 ```bash
