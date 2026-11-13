@@ -350,6 +350,17 @@ python3 .claude/skills/reels-make/scripts/sfxmix.py work/sfx_events.json work/pr
   output/reel.mp4 output/reel-sfx.mp4 --dir work/sfxpack [--bgm work/bgm/track.wav --bgm-db -10]
 ```
 
+### Cover (center-account template)
+
+Covers follow one template (2026-11-13): the chosen frame, shaded to black from the
+middle down, a small white condition line and a big yellow line (the hook), sized to
+the 3:4 profile grid. Take a clean frame from the cut (not the captioned render) where
+the user looks at the lens, then:
+
+```bash
+NODE_PATH=$(npm root -g) node .claude/skills/reels-make/scripts/cover.js frame.jpg "스쿼트할 때 무릎·허리 아프시면" "발바닥만 기억하세요" output/cover.jpg
+```
+
 ## 6. Publish kit
 
 Write the caption with `/ig-caption` and the cover line (the hook, 2 lines
