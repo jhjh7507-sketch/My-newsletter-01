@@ -402,6 +402,8 @@ def main():
     hot = [span(i) for i, sc in enumerate(scenes) if sc.get("hot")]
     # a full-frame graphic sits on the centre line, so its captions drop below it
     low = [span(i) for i, sc in enumerate(scenes) if mixed and (sc.get("layout") == "full" or sc.get("cap_low"))]
+    # with plan "cap_y" (captions on the chest), a split scene still puts them on the seam, off the face
+    seam = [span(i) for i, sc in enumerate(scenes) if mixed and plan.get("cap_y") and sc.get("layout") == "split"]
     # plan "cover_title": the hook as a big title from frame 0, in the cover template's look
     # (small white line over a big yellow line). Captions wait until it is gone. 2026-11-14.
     ct = plan.get("cover_title")
@@ -423,7 +425,8 @@ def main():
         # a caption that spends 40% of its time over a full-frame graphic drops below it
         inside = sum(max(0, min(b, c["end"]) - max(a, c["start"])) for a, b in low)
         hc = (" hot" if any(a <= mid < b for a, b in hot) else "") + \
-             (" low" if inside >= 0.4 * max(0.01, c["end"] - c["start"]) else "")
+             (" low" if inside >= 0.4 * max(0.01, c["end"] - c["start"]) else "") + \
+             (" seam" if any(a <= mid < b for a, b in seam) else "")
         shown = [re.sub(r"[.,]+$", "", w) for w in c["words"]] if plan.get("cap_strip_punct") else c["words"]
         txt = " ".join(f"<b>{esc(w)}</b>" if re.sub(r"[^\w]", "", w) in toks or any(
             t and t in w for t in toks if len(t) > 1) else esc(w) for w in shown)
@@ -468,6 +471,7 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{C['bg']}}}
 .lay-split{{height:{sy}px!important;padding:0 60px}}.lay-full{{height:{H}px!important;padding:0 60px}}
 .lay-face{{height:{sy}px!important}}
 .cap.low{{top:{CAP.get("y_low", 1560)}px}}
+.cap.seam{{top:{CAP.get("y_mixed", L["split_y"])}px}}
 .fc{{z-index:3;pointer-events:none}}
 .ctitle{{z-index:120}}
 .ct-s,.ct-b{{position:absolute;left:0;right:0;text-align:center;transform:translateY(-50%);white-space:nowrap;font-family:Pretendard,sans-serif}}

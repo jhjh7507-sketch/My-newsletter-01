@@ -431,9 +431,59 @@ def body(i, sc, s, C):
     return html, js, pops
 
 
+def posture(i, sc, s, C):
+    """Someone at a laptop seen from the side, back rounded and head pushed forward, drawn in
+    the same white line style as `body`. The neck-shoulder zone (upper trapezius) lights blue
+    at `t_hold` ("꺼지지 않고 버팀"), a head-weight arrow appears at `t_head`, and at `t_tired`
+    the zone turns red and pulses ("지쳐서 뭉침"). Labels can be changed with `hold`/`tired`.
+    Made for the trapezius reel (2026-11-14): a posture is a drawing, not anatomy."""
+    lines = ("M300 615 L455 615", "M300 615 L285 430", "M375 615 L375 800",      # chair
+             "M610 512 L930 512", "M900 512 L900 800",                          # desk
+             "M690 506 L820 506", "M820 506 L858 392",                          # laptop
+             "M400 600 C 372 492, 418 386, 528 338",                            # rounded back
+             "M528 338 L604 318",                                               # neck pushed forward
+             "M520 352 L590 470 L708 492",                                      # arm to the keyboard
+             "M400 600 L580 610 L585 795 L655 795")                             # leg
+    zx, zy = 528, 336
+    hold, tired = sc.get("hold", "꺼지지 않고 버팀"), sc.get("tired", "지쳐서 뭉침")
+    svg = (f'<svg class="bd-svg" viewBox="0 0 1000 900">'
+           f'<circle id="sc{i}zb" cx="{zx}" cy="{zy}" r="78" fill="{C["accent2"]}" opacity="0" '
+           f'style="filter:drop-shadow(0 0 30px {C["accent2"]})"/>'
+           f'<circle id="sc{i}zr" cx="{zx}" cy="{zy}" r="78" fill="{C["accent"]}" opacity="0" '
+           f'style="filter:drop-shadow(0 0 34px {C["accent"]})"/>'
+           + "".join(f'<path d="{d}" class="bd-line" pathLength="1"/>' for d in lines)
+           + f'<circle cx="662" cy="300" r="60" class="bd-line" pathLength="1"/>'
+           f'<g id="sc{i}hw" opacity="0"><path d="M700 150 L700 222" class="bd-arrow"/>'
+           f'<path d="M672 196 L700 230 L728 196" class="bd-arrow"/>'
+           f'<text x="740" y="200" class="pz-small">머리 무게</text></g>'
+           f'<text id="sc{i}lh" x="470" y="236" text-anchor="end" class="bd-lab" opacity="0">{esc(hold)}</text>'
+           f'<text id="sc{i}lt" x="470" y="236" text-anchor="end" class="bd-lab pz-red" opacity="0">{esc(tired)}</text>'
+           f'</svg>')
+    html = f'<div class="bd"><div class="bd-head" id="sc{i}hd">{esc(sc.get("title", ""))}</div>{svg}</div>'
+    js = [_in(f"#sc{i}hd", s),
+          f'tl.fromTo("#sc{i} .bd-line",{{strokeDashoffset:1}},{{strokeDashoffset:0,duration:.7,ease:"power2.out",stagger:.04}},{s + .05:.3f});']
+    pops = []
+    th, tw, tt = (float(sc[k]) if sc.get(k) is not None else None for k in ("t_hold", "t_head", "t_tired"))
+    if th is not None:
+        js += [f'tl.fromTo("#sc{i}zb",{{opacity:0,scale:.5,transformOrigin:"50% 50%"}},{{opacity:.8,scale:1,duration:.4,ease:"back.out(2)"}},{th:.3f});',
+               f'tl.fromTo("#sc{i}lh",{{opacity:0}},{{opacity:1,duration:.3}},{th + .05:.3f});']
+        pops.append(th)
+    if tw is not None:
+        js.append(f'tl.fromTo("#sc{i}hw",{{opacity:0,y:-30}},{{opacity:1,y:0,duration:.4,ease:"power2.out"}},{tw:.3f});')
+        pops.append(tw)
+    if tt is not None:
+        js += [f'tl.to("#sc{i}zb",{{opacity:0,duration:.25}},{tt:.3f});',
+               f'tl.fromTo("#sc{i}zr",{{opacity:0,scale:.8,transformOrigin:"50% 50%"}},{{opacity:.9,scale:1.12,duration:.35,'
+               f'ease:"power2.out",yoyo:true,repeat:3}},{tt:.3f});',
+               f'tl.to("#sc{i}lh",{{opacity:0,duration:.2}},{tt:.3f});',
+               f'tl.fromTo("#sc{i}lt",{{opacity:0}},{{opacity:1,duration:.3}},{tt + .05:.3f});']
+        pops.append(tt)
+    return html, js, pops
+
+
 BUILDERS = {"idcard": idcard, "clock": clock, "prompt": prompt, "wave": wave, "progress": progress,
             "label": label, "paper": paper, "calc": calc, "amino": amino, "scale": scale,
-            "sole": sole, "house": house, "body": body}
+            "sole": sole, "house": house, "body": body, "posture": posture}
 
 
 def css(C):
@@ -491,6 +541,8 @@ def css(C):
 .bd-svg{{width:840px;height:756px;overflow:visible}}
 .bd-line{{fill:none;stroke:#f4f6fa;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}}
 .bd-lab{{font-size:56px;font-weight:900;fill:#fff}}
+.pz-small{{font-size:40px;font-weight:800;fill:#fff}}
+.pz-red{{fill:{C['accent']}}}
 .bd-arrow{{fill:none;stroke:{C['accent']};stroke-width:16;stroke-linecap:round;stroke-linejoin:round}}
 .id,.ck,.pm,.wv,.pg,.nl,.pp,.am,.sb,.so,.hs,.bd{{width:100%;display:flex;flex-direction:column;align-items:center}}
 .id-card{{width:960px;border-radius:44px;padding:40px 46px 34px;background:linear-gradient(160deg,{C['panel']},#0b0e15);border:2px solid rgba(255,255,255,.09);box-shadow:0 30px 80px rgba(0,0,0,.55)}}

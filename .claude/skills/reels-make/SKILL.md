@@ -350,6 +350,15 @@ python3 .claude/skills/reels-make/scripts/sfxmix.py work/sfx_events.json work/pr
   output/reel.mp4 output/reel-sfx.mp4 --dir work/sfxpack [--bgm work/bgm/track.wav --bgm-db -10]
 ```
 
+### Posture drawing and caption height (2026-11-14)
+
+`posture` (props.py) draws someone at a laptop from the side, back rounded and head forward;
+`t_hold` lights the neck-shoulder zone blue ("꺼지지 않고 버팀"), `t_head` drops a head-weight
+arrow, `t_tired` turns the zone red and pulses ("지쳐서 뭉침"). Plan `cap_y` moves captions to the
+chest for talking shots; split scenes keep them on the seam, and a scene with `cap_low` drops
+them lower (a wide shot where the face sits low). Memo-recorded voice can come out near -33 LUFS:
+measure and loudnorm it to about -15 before `sfxmix.py`.
+
 ### First 3 seconds (2026-11-14)
 
 The script's 첫 자막 (Notion field, scripts.md "첫 자막") is the on-screen hook: show it
