@@ -350,6 +350,14 @@ python3 .claude/skills/reels-make/scripts/sfxmix.py work/sfx_events.json work/pr
   output/reel.mp4 output/reel-sfx.mp4 --dir work/sfxpack [--bgm work/bgm/track.wav --bgm-db -10]
 ```
 
+### First 3 seconds (2026-11-14)
+
+The script's 첫 자막 (Notion field, scripts.md "첫 자막") is the on-screen hook: show it
+as a big title in the cover style (small white line + big yellow line) from frame 0 to
+about 3 s, on top of a frame that already shows the topic (the movement, not a close
+face). The squat reel showed it only as word-by-word captions and lost 60.7% in the
+first 3 s. Rules: `.claude/instagram/strategy.md` "첫 3초 규칙".
+
 ### Cover (center-account template)
 
 Covers follow one template (2026-11-13): the chosen frame left as it is (no black shade
