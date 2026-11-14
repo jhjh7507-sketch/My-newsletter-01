@@ -216,7 +216,7 @@ def main():
     cap_y = CAP.get("y_mixed", L["split_y"]) if mixed else (CAP["y_split"] if split else CAP["y_full"])
     cap_y = int(plan.get("cap_y", cap_y))  # a talk with no graphics can drop captions to the chest
     sy = L["split_y"]
-    caps = chunk_captions(words, CAP["min_words"], CAP["max_words"])
+    caps = chunk_captions(words, CAP["min_words"], int(plan.get("cap_max_words", CAP["max_words"])))
 
     clips, js = [], []
     vol = st["sfx"]["volume"]
@@ -424,8 +424,9 @@ def main():
         inside = sum(max(0, min(b, c["end"]) - max(a, c["start"])) for a, b in low)
         hc = (" hot" if any(a <= mid < b for a, b in hot) else "") + \
              (" low" if inside >= 0.4 * max(0.01, c["end"] - c["start"]) else "")
+        shown = [re.sub(r"[.,]+$", "", w) for w in c["words"]] if plan.get("cap_strip_punct") else c["words"]
         txt = " ".join(f"<b>{esc(w)}</b>" if re.sub(r"[^\w]", "", w) in toks or any(
-            t and t in w for t in toks if len(t) > 1) else esc(w) for w in c["words"])
+            t and t in w for t in toks if len(t) > 1) else esc(w) for w in shown)
         clips.append(f'<div class="clip cap{hc}" id="cap{k}" data-start="{c["start"]:.3f}" '
                      f'data-duration="{max(0.08, c["end"] - c["start"]):.3f}" data-track-index="3">'
                      f'<span>{txt}</span></div>')
