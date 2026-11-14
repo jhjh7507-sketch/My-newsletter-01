@@ -334,7 +334,7 @@ def css(C):
 .ac-win{{position:absolute;overflow:hidden}}
 .ac-svg{{position:absolute;inset:0;width:100%;height:100%;z-index:1;overflow:visible}}
 .ac-ring{{position:absolute;z-index:2;opacity:0;border:7px solid;border-radius:50%}}
-.ac-head{{z-index:2;top:0;padding:52px 0 70px;color:{C['ink']};font-size:44px;text-shadow:0 2px 12px rgba(0,0,0,.35);background:linear-gradient(180deg,{C['bg']}e6 0%,{C['bg']}99 55%,{C['bg']}00 100%)}}
+.ac-head{{z-index:2;top:0;padding:52px 0 70px;color:#fff;font-size:44px;text-shadow:0 2px 12px rgba(0,0,0,.9);background:linear-gradient(180deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,0) 100%)}}
 .pvw{{position:absolute;inset:0}}
 .pv{{position:absolute;inset:0;width:100%;height:100%}}
 .pv-head{{position:absolute;top:56px;left:0;right:0;text-align:center;font-size:40px;font-weight:800;color:{C['muted']};letter-spacing:.06em;z-index:1}}
