@@ -214,6 +214,7 @@ def main():
     mixed = plan.get("layout") == "mixed" and mode in ("face", "character")
     split = mode in ("face", "character") and not full and not mixed
     cap_y = CAP.get("y_mixed", L["split_y"]) if mixed else (CAP["y_split"] if split else CAP["y_full"])
+    cap_y = int(plan.get("cap_y", cap_y))  # a talk with no graphics can drop captions to the chest
     sy = L["split_y"]
     caps = chunk_captions(words, CAP["min_words"], CAP["max_words"])
 
@@ -401,7 +402,22 @@ def main():
     hot = [span(i) for i, sc in enumerate(scenes) if sc.get("hot")]
     # a full-frame graphic sits on the centre line, so its captions drop below it
     low = [span(i) for i, sc in enumerate(scenes) if mixed and sc.get("layout") == "full"]
+    # plan "cover_title": the hook as a big title from frame 0, in the cover template's look
+    # (small white line over a big yellow line). Captions wait until it is gone. 2026-11-14.
+    ct = plan.get("cover_title")
+    ct_end = 0.0
+    if ct:
+        ct_end = float(ct.get("end", 3.0))
+        cy = int(ct.get("y", 1105))
+        big = ct["big"]
+        fsz = min(130, int(983 / (0.92 * len(big.replace(" ", "")) + 0.3 * big.count(" "))))
+        clips.append(f'<div class="clip ctitle" id="ctitle" data-start="0" data-duration="{ct_end:.3f}" '
+                     f'data-track-index="4"><div class="ct-s" style="top:{cy - 132}px">{esc(ct.get("small", ""))}</div>'
+                     f'<div class="ct-b" style="top:{cy}px;font-size:{fsz}px">{esc(big)}</div></div>')
+        js.append(f'tl.fromTo("#ctitle",{{opacity:1}},{{opacity:0,duration:.2}},{ct_end - 0.2:.3f});')
     for k, c in enumerate(caps):
+        if c["start"] < ct_end - 0.05:
+            continue
         toks = {t for term in emph for t in term.split()}
         mid = (c["start"] + c["end"]) / 2  # the scene a caption mostly sits in decides its look
         # a caption that spends 40% of its time over a full-frame graphic drops below it
@@ -452,6 +468,10 @@ html,body{{width:{W}px;height:{H}px;overflow:hidden;background:{C['bg']}}}
 .lay-face{{height:{sy}px!important}}
 .cap.low{{top:{CAP.get("y_low", 1560)}px}}
 .fc{{z-index:3;pointer-events:none}}
+.ctitle{{z-index:120}}
+.ct-s,.ct-b{{position:absolute;left:0;right:0;text-align:center;transform:translateY(-50%);white-space:nowrap;font-family:Pretendard,sans-serif}}
+.ct-s{{font-size:58px;font-weight:700;color:#fff;letter-spacing:-.02em;text-shadow:0 2px 6px rgba(0,0,0,.75),0 0 22px rgba(0,0,0,.55)}}
+.ct-b{{font-weight:900;color:#f7d45e;letter-spacing:-.045em;text-shadow:0 3px 10px rgba(0,0,0,.7),0 0 34px rgba(0,0,0,.5)}}
 .fc-frame{{position:absolute;opacity:0;border-radius:44px;box-shadow:0 0 0 3px rgba(255,255,255,.22)}}
 .fc-rec{{position:absolute;left:36px;top:34px;display:flex;align-items:center;gap:12px;font-size:34px;font-weight:900;color:#fff;letter-spacing:.08em;text-shadow:0 2px 10px rgba(0,0,0,.6)}}
 .fc-rec i{{width:22px;height:22px;border-radius:50%}}
