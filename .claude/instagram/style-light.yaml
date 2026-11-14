@@ -1,0 +1,56 @@
+# Light variant of style.yaml (2026-11-14 사용자: "그래픽 배경이 너무 어두워서 처음 테스트 영상 같은 밝은 톤").
+# Same layout and captions; graphic colours from the first test reel (2026-10-27, build.py DEFAULT_STYLE).
+source:
+- '기준: 얼굴반반편집 (@lazy_owen, 2026-10-28 화면 녹화) - 장면마다 얼굴 전체 / 위 그래픽 아래 얼굴 / 그래픽 전체가
+  1~3초 단위로 바뀜, 자막은 화면 가운데 이음선에 고정, 박스 없는 흰 글씨 + 검은 테두리, 강조 문장은 노란색'
+- '부품: 반반편집 (@use.ai.likejimin) - 글을 다시 쓰지 않고 ''물건''을 보여주는 그래픽(큰 숫자, 진행 막대, 순서 아이콘)'
+- '부품: 얼굴반반 3개 (@grit_park_ 번호 태그와 비교 도식 / @apiket_marketing_teacher 빨간 키워드 헤드라인 /
+  유리 질감 카드)'
+- '색은 해부학 앱 화면(검은 배경, 빨간 근육)과 맞춤: 빨강 = 긴장, 파랑 = 늘어남'
+canvas:
+  w: 1080
+  h: 1920
+  fps: 30
+font: Pretendard
+colors:
+  bg: '#efe7e4'
+  panel: '#ffffff'
+  ink: '#1d1d1f'
+  muted: '#8a8a8e'
+  accent: '#d65745'
+  accent2: '#2f7de1'
+  caption_bg: '#000000'
+  caption_ink: '#ffffff'
+  caption_accent: '#ffd23f'
+layout:
+  split_y: 960
+caption:
+  y_split: 960
+  y_full: 1400
+  y_mixed: 960
+  size: 64
+  weight: 800
+  min_words: 1
+  max_words: 3
+  box: false
+  stroke: true
+motion:
+  card_rise_px: 40
+  ease: expo.out
+  in_dur: 0.45
+  stagger: 0.1
+  face_push_frames: 8
+  face_push_scale: 1.08
+  layout_dur: 0.45
+  layout_ease: power2.inOut
+cut:
+  pad: 0.12
+  max_gap: 0.35
+sfx:
+  scene: whoosh
+  item: pop
+  volume: 0.28
+voice:
+  provider: elevenlabs
+  voice_id: JBFqnCBsd6RMkjVDRZzb
+  speed: 1.05

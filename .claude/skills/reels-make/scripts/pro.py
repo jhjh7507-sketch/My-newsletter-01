@@ -298,7 +298,7 @@ def css(C):
 .pk-kick{{font-size:34px;font-weight:800;letter-spacing:.16em;color:{C['muted']};margin-bottom:26px}}
 .pk-word{{position:relative;display:inline-block;padding:4px 26px}}
 .pk-bar{{position:absolute;left:0;right:0;top:12%;bottom:8%;border-radius:10px;transform-origin:left center;opacity:.9}}
-.pk-txt{{position:relative;font-size:124px;font-weight:900;letter-spacing:-.04em;color:#fff;white-space:nowrap}}
+.pk-txt{{position:relative;font-size:124px;font-weight:900;letter-spacing:-.04em;color:{C['ink']};white-space:nowrap}}
 .pk-sub{{margin-top:30px;font-size:42px;font-weight:600;color:{C['muted']}}}
 .pc{{width:100%}}
 .pc-head{{text-align:center;font-size:40px;font-weight:800;color:{C['muted']};margin-bottom:40px;letter-spacing:.04em}}
@@ -334,7 +334,7 @@ def css(C):
 .ac-win{{position:absolute;overflow:hidden}}
 .ac-svg{{position:absolute;inset:0;width:100%;height:100%;z-index:1;overflow:visible}}
 .ac-ring{{position:absolute;z-index:2;opacity:0;border:7px solid;border-radius:50%}}
-.ac-head{{z-index:2;top:0;padding:52px 0 70px;color:#fff;font-size:44px;text-shadow:0 2px 12px rgba(0,0,0,.9);background:linear-gradient(180deg,{C['bg']}e6 0%,{C['bg']}99 55%,{C['bg']}00 100%)}}
+.ac-head{{z-index:2;top:0;padding:52px 0 70px;color:{C['ink']};font-size:44px;text-shadow:0 2px 12px rgba(0,0,0,.35);background:linear-gradient(180deg,{C['bg']}e6 0%,{C['bg']}99 55%,{C['bg']}00 100%)}}
 .pvw{{position:absolute;inset:0}}
 .pv{{position:absolute;inset:0;width:100%;height:100%}}
 .pv-head{{position:absolute;top:56px;left:0;right:0;text-align:center;font-size:40px;font-weight:800;color:{C['muted']};letter-spacing:.06em;z-index:1}}

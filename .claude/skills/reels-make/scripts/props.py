@@ -529,7 +529,7 @@ def css(C):
 .sb-note{{margin-top:16px;font-size:28px;font-weight:600;color:{C['muted']}}}
 .so-head,.hs-head{{font-size:44px;font-weight:800;color:{C['muted']}}}
 .so-svg{{width:700px;height:716px;overflow:visible;margin-top:6px}}
-.so-line{{fill:none;stroke:#f4f6fa;stroke-width:9;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}}
+.so-line{{fill:none;stroke:{C['ink']};stroke-width:9;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}}
 .so-ring{{fill:none;stroke:{C['accent']};stroke-width:6}}
 .so-name{{font-size:44px;font-weight:800;fill:{C['muted']}}}.so-val{{font-size:150px;font-weight:900;fill:#fff}}
 .so-note{{margin-top:4px;font-size:34px;font-weight:700;color:{C['muted']};opacity:0}}
@@ -539,9 +539,9 @@ def css(C):
 .hs-chip{{margin-top:2px;font-size:44px;font-weight:900;color:#111;padding:10px 34px;border-radius:999px;opacity:0}}
 .bd-head{{font-size:44px;font-weight:800;color:{C['muted']}}}
 .bd-svg{{width:840px;height:756px;overflow:visible}}
-.bd-line{{fill:none;stroke:#f4f6fa;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}}
-.bd-lab{{font-size:56px;font-weight:900;fill:#fff}}
-.pz-small{{font-size:40px;font-weight:800;fill:#fff}}
+.bd-line{{fill:none;stroke:{C['ink']};stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}}
+.bd-lab{{font-size:56px;font-weight:900;fill:{C['ink']}}}
+.pz-small{{font-size:40px;font-weight:800;fill:{C['ink']}}}
 .pz-red{{fill:{C['accent']}}}
 .bd-arrow{{fill:none;stroke:{C['accent']};stroke-width:16;stroke-linecap:round;stroke-linejoin:round}}
 .id,.ck,.pm,.wv,.pg,.nl,.pp,.am,.sb,.so,.hs,.bd{{width:100%;display:flex;flex-direction:column;align-items:center}}
