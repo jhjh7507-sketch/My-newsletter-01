@@ -401,7 +401,7 @@ def main():
     span = lambda i: (starts[i], starts[i + 1] if i + 1 < len(scenes) else D)
     hot = [span(i) for i, sc in enumerate(scenes) if sc.get("hot")]
     # a full-frame graphic sits on the centre line, so its captions drop below it
-    low = [span(i) for i, sc in enumerate(scenes) if mixed and sc.get("layout") == "full"]
+    low = [span(i) for i, sc in enumerate(scenes) if mixed and (sc.get("layout") == "full" or sc.get("cap_low"))]
     # plan "cover_title": the hook as a big title from frame 0, in the cover template's look
     # (small white line over a big yellow line). Captions wait until it is gone. 2026-11-14.
     ct = plan.get("cover_title")
