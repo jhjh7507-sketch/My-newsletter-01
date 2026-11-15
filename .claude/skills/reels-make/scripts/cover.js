@@ -1,10 +1,12 @@
 // Center-account reel cover: the frame as it is, a small white line and a big yellow line
 // close under it in the 3:4 grid window (2026-11-13 template). No black shade over the body
 // (the user did not want the lower body hidden); a soft dark glow keeps the text readable.
-//   node cover.js frame.jpg "다이어트 중이시면" "식단 하지 마세요" out.jpg
+//   node cover.js frame.jpg "다이어트 중이시면" "식단 하지 마세요" out.jpg [brand]
 // Needs the pre-installed Playwright (NODE_PATH=$(npm root -g)). Output 1080x1920 JPEG.
 const { chromium } = require('playwright'); const fs = require('fs'); const path = require('path');
-const [bg, small, big, out] = process.argv.slice(2);
+const [bg, small, big, out, look] = process.argv.slice(2);
+// look "brand" (A account, 2026-11-15): small line in a navy pill, big yellow line with a navy outline.
+const brand = look === 'brand';
 if (!out) { console.error('usage: node cover.js frame.jpg "small line" "big line" out.jpg'); process.exit(1); }
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 // Measured from the user's reference cover (460x605 grid crop): headline about 91% of the width,
@@ -15,7 +17,9 @@ const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8">
 .bg{position:absolute;inset:0;background:url("file://${path.resolve(bg)}") center/cover no-repeat}
 .t{position:absolute;left:0;right:0;text-align:center;font-family:Pretendard,sans-serif;white-space:nowrap;transform:translateY(-50%)}
 .s{top:973px;font-size:58px;font-weight:700;color:#fff;letter-spacing:-.02em;text-shadow:0 2px 6px rgba(0,0,0,.75),0 0 22px rgba(0,0,0,.55)}
-.b{top:1105px;font-size:150px;font-weight:900;color:#f7d45e;letter-spacing:-.045em;text-shadow:0 3px 10px rgba(0,0,0,.7),0 0 34px rgba(0,0,0,.5)}</style></head>
+.b{top:1105px;font-size:150px;font-weight:900;color:#f7d45e;letter-spacing:-.045em;text-shadow:0 3px 10px rgba(0,0,0,.7),0 0 34px rgba(0,0,0,.5)}
+${brand ? `.s{left:50%;right:auto;transform:translate(-50%,-50%);background:#2b3448;padding:16px 38px;border-radius:999px;font-size:54px;text-shadow:none;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.b{-webkit-text-stroke:10px #2b3448;paint-order:stroke fill;text-shadow:0 6px 18px rgba(0,0,0,.35)}` : ''}</style></head>
 <body><div class="bg"></div><div class="t s">${esc(small)}</div><div class="t b"><span>${esc(big)}</span></div></body></html>`;
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
