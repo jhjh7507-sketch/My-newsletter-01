@@ -6,6 +6,8 @@
 도구 이름은 연결마다 접두어가 달라질 수 있다. `search_files`, `list_events`처럼 짧은 이름으로 ToolSearch해서 쓴다.
 
 ## 드라이브
+세 폴더는 2026-11-15부터 상위 폴더 `수업 루틴 피드백 정리 폴더`(`1MGXOwY8z_e8sDDRWmRq-u-YSSOVoIh_j`) 안에 있다. 옮겨도 ID는 그대로라 클라우드 작업은 바꿀 것이 없다.
+
 | 폴더 | ID | 내용 |
 |---|---|---|
 | 수업녹음 | `126Sol0WoFopiFiDpnS_41K-VfVh_2eXH` | 녹음 m4a와 받아쓴 글 txt. 맥북이 올린다. 파일 이름 = 녹음 시각 `yyyy-MM-dd HH-mm-ss <음성 메모 제목>.m4a`, 글은 같은 이름의 `.txt`. 예전 시험 파일은 Apps Script가 올려서 커넥터로 옮기거나 지울 수 없다 |
